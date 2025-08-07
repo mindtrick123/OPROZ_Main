@@ -33,9 +33,10 @@ public class HomeController : Controller
         // Get subscription plans for the landing page
         var subscriptionPlans = await _context.SubscriptionPlans
             .Where(sp => sp.IsActive)
-            .OrderBy(sp => sp.Price)
-            .Take(3)
             .ToListAsync();
+
+        // Sort by price in memory (SQLite limitation with decimal sorting)
+        subscriptionPlans = subscriptionPlans.OrderBy(sp => sp.Price).Take(3).ToList();
 
         ViewBag.SubscriptionPlans = subscriptionPlans;
 
