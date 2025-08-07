@@ -1,0 +1,85 @@
+@model AboutViewModel
+@{
+    ViewData["Title"] = "About Us";
+}
+
+<section class="py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto text-center">
+                <h1 class="display-4 fw-bold mb-4">About OPROZ</h1>
+                <p class="lead">We are a team of passionate technologists dedicated to helping businesses succeed in the digital age.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h2 class="fw-bold mb-4">Our Mission</h2>
+                <p>To democratize technology and make enterprise-level solutions accessible to businesses of all sizes. We believe that every organization deserves the tools and support needed to thrive in today's competitive digital landscape.</p>
+                <p>Through our comprehensive SaaS platform, we provide cutting-edge solutions that scale with your business, ensuring you stay ahead of the curve while focusing on what matters most - your core business objectives.</p>
+            </div>
+            <div class="col-lg-6">
+                <img src="https://via.placeholder.com/500x300/007bff/ffffff?text=Our+Mission" alt="Our Mission" class="img-fluid rounded shadow">
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="py-5">
+    <div class="container">
+        <div class="row text-center mb-5">
+            <div class="col-lg-8 mx-auto">
+                <h2 class="display-5 fw-bold mb-3">Meet Our Team</h2>
+                <p class="lead text-muted">The passionate individuals behind OPROZ's success</p>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            @foreach (var member in Model.TeamMembers)
+            {
+                <div class="col-lg-4 col-md-6">
+                    <div class="card team-card h-100 text-center">
+                        <div class="card-body p-4">
+                            <img src="@member.ImageUrl" alt="@member.Name" class="team-image mb-3">
+                            <h5 class="card-title">@member.Name</h5>
+                            <p class="text-primary fw-bold mb-2">@member.Position</p>
+                            <p class="card-text">@member.Description</p>
+                        </div>
+                        <div class="card-footer bg-transparent">
+                            <a href="@member.LinkedInUrl" target="_blank" class="btn btn-outline-primary">
+                                <i class="fab fa-linkedin-in me-1"></i>Connect
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+<section class="py-5 bg-primary text-white">
+    <div class="container">
+        <div class="row text-center">
+            <div class="col-md-3 mb-4">
+                <h3 class="display-4 fw-bold">@Model.CompanyStats.YearsInBusiness+</h3>
+                <p class="lead">Years in Business</p>
+            </div>
+            <div class="col-md-3 mb-4">
+                <h3 class="display-4 fw-bold">@Model.CompanyStats.ProjectsCompleted+</h3>
+                <p class="lead">Projects Completed</p>
+            </div>
+            <div class="col-md-3 mb-4">
+                <h3 class="display-4 fw-bold">@Model.CompanyStats.HappyClients+</h3>
+                <p class="lead">Happy Clients</p>
+            </div>
+            <div class="col-md-3 mb-4">
+                <h3 class="display-4 fw-bold">@Model.CompanyStats.TeamMembers+</h3>
+                <p class="lead">Team Members</p>
+            </div>
+        </div>
+    </div>
+</section>
