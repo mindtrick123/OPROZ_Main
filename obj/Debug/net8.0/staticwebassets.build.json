@@ -1,0 +1,58 @@
+{
+  "Version": 1,
+  "Hash": "DUmsYJCNM+w0eix1A2sckGH4/6ROC/EDZ1MWL0jCEtA=",
+  "Source": "OPROZ_Main",
+  "BasePath": "_content/OPROZ_Main",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [
+    {
+      "Name": "OPROZ_Main/wwwroot",
+      "Source": "OPROZ_Main",
+      "ContentRoot": "/home/runner/work/OPROZ_Main/OPROZ_Main/wwwroot/",
+      "BasePath": "_content/OPROZ_Main",
+      "Pattern": "**"
+    }
+  ],
+  "Assets": [
+    {
+      "Identity": "/home/runner/work/OPROZ_Main/OPROZ_Main/wwwroot/css/site.css",
+      "SourceId": "OPROZ_Main",
+      "SourceType": "Discovered",
+      "ContentRoot": "/home/runner/work/OPROZ_Main/OPROZ_Main/wwwroot/",
+      "BasePath": "_content/OPROZ_Main",
+      "RelativePath": "css/site.css",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot/css/site.css"
+    },
+    {
+      "Identity": "/home/runner/work/OPROZ_Main/OPROZ_Main/wwwroot/js/site.js",
+      "SourceId": "OPROZ_Main",
+      "SourceType": "Discovered",
+      "ContentRoot": "/home/runner/work/OPROZ_Main/OPROZ_Main/wwwroot/",
+      "BasePath": "_content/OPROZ_Main",
+      "RelativePath": "js/site.js",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot/js/site.js"
+    }
+  ]
+}

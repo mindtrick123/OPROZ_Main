@@ -1,0 +1,91 @@
+@model ServicesViewModel
+@{
+    ViewData["Title"] = "Our Services";
+}
+
+<section class="py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto text-center">
+                <h1 class="display-4 fw-bold mb-4">Our Services</h1>
+                <p class="lead">Comprehensive solutions to power your digital transformation</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="py-5">
+    <div class="container">
+        <div class="row g-4">
+            @foreach (var service in Model.Services)
+            {
+                <div class="col-lg-6 col-xl-4">
+                    <div class="card service-card h-100">
+                        <div class="card-body text-center p-4">
+                            <div class="service-icon mb-3">
+                                <i class="@service.IconClass"></i>
+                            </div>
+                            <h5 class="card-title">@service.Name</h5>
+                            <p class="card-text">@service.Description</p>
+                            @if (service.BasePrice.HasValue)
+                            {
+                                <p class="text-primary fw-bold">Starting at $@service.BasePrice.Value.ToString("N0")</p>
+                            }
+                        </div>
+                        <div class="card-footer bg-transparent">
+                            <button class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#serviceModal-@service.Id">
+                                View Plans
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Service Modal -->
+                <div class="modal fade" id="serviceModal-@service.Id" tabindex="-1">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">@service.Name - Subscription Plans</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                @if (Model.SubscriptionPlans.ContainsKey(service))
+                                {
+                                    <div class="row g-3">
+                                        @foreach (var plan in Model.SubscriptionPlans[service])
+                                        {
+                                            <div class="col-md-4">
+                                                <div class="card pricing-card @(plan.IsPopular ? "featured" : "") h-100">
+                                                    @if (plan.IsPopular)
+                                                    {
+                                                        <div class="card-header bg-primary text-white text-center">
+                                                            <small>Most Popular</small>
+                                                        </div>
+                                                    }
+                                                    <div class="card-body text-center">
+                                                        <h6 class="card-title">@plan.Type</h6>
+                                                        <div class="mb-3">
+                                                            <span class="h4 fw-bold text-primary">$@plan.Price.ToString("N0")</span>
+                                                            <span class="text-muted">/@plan.Duration.ToString().ToLower()</span>
+                                                        </div>
+                                                        <ul class="list-unstyled">
+                                                            <li><i class="fas fa-check text-success me-2"></i>@plan.MaxUsers users</li>
+                                                            <li><i class="fas fa-check text-success me-2"></i>@(plan.MaxStorage / 1024)GB storage</li>
+                                                        </ul>
+                                                    </div>
+                                                    <div class="card-footer">
+                                                        <a href="@Url.Action("Register", "Account")" class="btn btn-outline-primary w-100">Choose Plan</a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</section>

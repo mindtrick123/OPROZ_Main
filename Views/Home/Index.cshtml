@@ -1,0 +1,224 @@
+@model HomeIndexViewModel
+@{
+    ViewData["Title"] = "Home";
+}
+
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold mb-4">Transform Your Business with OPROZ</h1>
+                <p class="lead mb-4">
+                    Empower your organization with our comprehensive SaaS solutions. From web development to cloud services, 
+                    we provide the tools and expertise to accelerate your digital transformation.
+                </p>
+                <div class="d-flex flex-wrap gap-3">
+                    <a href="@Url.Action("Services", "Home")" class="btn btn-light btn-lg">
+                        <i class="fas fa-rocket me-2"></i>Explore Services
+                    </a>
+                    <a href="@Url.Action("Contact", "Home")" class="btn btn-outline-light btn-lg">
+                        <i class="fas fa-comments me-2"></i>Get Started
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-6 text-center">
+                <img src="https://via.placeholder.com/500x400/007bff/ffffff?text=OPROZ+Platform" 
+                     alt="OPROZ Platform" class="img-fluid rounded shadow">
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="row text-center mb-5">
+            <div class="col-lg-8 mx-auto">
+                <h2 class="display-5 fw-bold mb-3">Why Choose OPROZ?</h2>
+                <p class="lead text-muted">
+                    We combine cutting-edge technology with exceptional service to deliver solutions that drive results.
+                </p>
+            </div>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card feature-card h-100 text-center p-4">
+                    <div class="mb-3">
+                        <i class="fas fa-cogs fa-3x text-primary"></i>
+                    </div>
+                    <h5 class="card-title">Scalable Solutions</h5>
+                    <p class="card-text">
+                        Our platforms grow with your business, ensuring you never outgrow our solutions.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card feature-card h-100 text-center p-4">
+                    <div class="mb-3">
+                        <i class="fas fa-shield-alt fa-3x text-primary"></i>
+                    </div>
+                    <h5 class="card-title">Enterprise Security</h5>
+                    <p class="card-text">
+                        Bank-level security ensures your data is protected with the highest industry standards.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card feature-card h-100 text-center p-4">
+                    <div class="mb-3">
+                        <i class="fas fa-headset fa-3x text-primary"></i>
+                    </div>
+                    <h5 class="card-title">24/7 Support</h5>
+                    <p class="card-text">
+                        Our expert support team is available around the clock to assist you when you need it.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Services Section -->
+@if (Model.FeaturedServices.Any())
+{
+    <section class="py-5 bg-light">
+        <div class="container">
+            <div class="row text-center mb-5">
+                <div class="col-lg-8 mx-auto">
+                    <h2 class="display-5 fw-bold mb-3">Our Featured Services</h2>
+                    <p class="lead text-muted">
+                        Discover our most popular solutions designed to accelerate your business growth.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="row g-4">
+                @foreach (var service in Model.FeaturedServices)
+                {
+                    <div class="col-lg-4 col-md-6">
+                        <div class="card feature-card h-100">
+                            <div class="card-body text-center p-4">
+                                <div class="mb-3">
+                                    <i class="@service.IconClass fa-3x text-primary"></i>
+                                </div>
+                                <h5 class="card-title">@service.Name</h5>
+                                <p class="card-text">@service.ShortDescription</p>
+                                @if (service.BasePrice.HasValue)
+                                {
+                                    <p class="text-primary fw-bold">Starting at $@service.BasePrice.Value.ToString("N0")</p>
+                                }
+                            </div>
+                            <div class="card-footer bg-transparent">
+                                <a href="@Url.Action("Services", "Home")" class="btn btn-outline-primary">
+                                    Learn More <i class="fas fa-arrow-right ms-1"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </section>
+}
+
+<!-- Popular Plans Section -->
+@if (Model.PopularPlans.Any())
+{
+    <section class="py-5">
+        <div class="container">
+            <div class="row text-center mb-5">
+                <div class="col-lg-8 mx-auto">
+                    <h2 class="display-5 fw-bold mb-3">Popular Subscription Plans</h2>
+                    <p class="lead text-muted">
+                        Choose the perfect plan for your business needs with flexible pricing options.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="row g-4 justify-content-center">
+                @foreach (var plan in Model.PopularPlans)
+                {
+                    <div class="col-lg-4 col-md-6">
+                        <div class="card feature-card h-100 position-relative">
+                            @if (plan.IsPopular)
+                            {
+                                <div class="position-absolute top-0 start-50 translate-middle">
+                                    <span class="badge bg-warning text-dark px-3 py-2">Most Popular</span>
+                                </div>
+                            }
+                            <div class="card-body text-center p-4">
+                                <h5 class="card-title">@plan.Name</h5>
+                                <div class="mb-3">
+                                    <span class="display-6 fw-bold text-primary">$@plan.Price.ToString("N0")</span>
+                                    <span class="text-muted">/@plan.Duration.ToString().ToLower()</span>
+                                </div>
+                                <p class="card-text">@plan.Description</p>
+                                <ul class="list-unstyled">
+                                    <li><i class="fas fa-check text-success me-2"></i>Up to @plan.MaxUsers users</li>
+                                    <li><i class="fas fa-check text-success me-2"></i>@(plan.MaxStorage / 1024)GB storage</li>
+                                    <li><i class="fas fa-check text-success me-2"></i>Email support</li>
+                                </ul>
+                            </div>
+                            <div class="card-footer bg-transparent">
+                                <a href="@Url.Action("Register", "Account")" class="btn btn-primary w-100">
+                                    Get Started
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </section>
+}
+
+<!-- Stats Section -->
+<section class="py-5 bg-primary text-white">
+    <div class="container">
+        <div class="row text-center">
+            <div class="col-md-3 mb-4">
+                <h3 class="display-4 fw-bold">250+</h3>
+                <p class="lead">Projects Completed</p>
+            </div>
+            <div class="col-md-3 mb-4">
+                <h3 class="display-4 fw-bold">150+</h3>
+                <p class="lead">Happy Clients</p>
+            </div>
+            <div class="col-md-3 mb-4">
+                <h3 class="display-4 fw-bold">5+</h3>
+                <p class="lead">Years Experience</p>
+            </div>
+            <div class="col-md-3 mb-4">
+                <h3 class="display-4 fw-bold">25+</h3>
+                <p class="lead">Team Members</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto text-center">
+                <h2 class="display-5 fw-bold mb-3">Ready to Transform Your Business?</h2>
+                <p class="lead mb-4">
+                    Join thousands of businesses that trust OPROZ to power their digital transformation.
+                    Get started today with a free consultation.
+                </p>
+                <div class="d-flex flex-wrap gap-3 justify-content-center">
+                    <a href="@Url.Action("Register", "Account")" class="btn btn-primary btn-lg">
+                        <i class="fas fa-rocket me-2"></i>Start Free Trial
+                    </a>
+                    <a href="@Url.Action("Contact", "Home")" class="btn btn-outline-primary btn-lg">
+                        <i class="fas fa-calendar-alt me-2"></i>Schedule Demo
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

@@ -1,0 +1,45 @@
+@model BlogsViewModel
+@{
+    ViewData["Title"] = "Blog";
+}
+
+<section class="py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto text-center">
+                <h1 class="display-4 fw-bold mb-4">Our Blog</h1>
+                <p class="lead">Stay updated with the latest insights, trends, and best practices in technology</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="py-5">
+    <div class="container">
+        <div class="row g-4">
+            @foreach (var post in Model.BlogPosts)
+            {
+                <div class="col-lg-6 col-xl-3">
+                    <div class="card blog-card h-100">
+                        <img src="@post.ImageUrl" class="card-img-top blog-image" alt="@post.Title">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="badge bg-primary">@post.Category</span>
+                                <small class="text-muted">@post.ReadTimeMinutes min read</small>
+                            </div>
+                            <h5 class="card-title">@post.Title</h5>
+                            <p class="card-text">@post.Summary</p>
+                        </div>
+                        <div class="card-footer bg-transparent">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">By @post.Author</small>
+                                <small class="text-muted">@post.PublishedDate.ToString("MMM dd, yyyy")</small>
+                            </div>
+                            <a href="#" class="btn btn-outline-primary btn-sm mt-2">Read More</a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</section>
