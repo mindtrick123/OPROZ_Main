@@ -1,0 +1,252 @@
+@model ContactViewModel
+@{
+    ViewData["Title"] = "Contact Us";
+}
+
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto text-center mb-5">
+            <h1 class="display-4 fw-bold">Contact Us</h1>
+            <p class="lead text-muted">Get in touch with our team. We're here to help you succeed.</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Contact Form -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="fas fa-envelope me-2"></i>Send us a Message</h4>
+                </div>
+                <div class="card-body p-4">
+                    @if (ViewBag.SuccessMessage != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <i class="fas fa-check-circle me-2"></i>@ViewBag.SuccessMessage
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+
+                    @if (ViewBag.ErrorMessage != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="fas fa-exclamation-circle me-2"></i>@ViewBag.ErrorMessage
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+
+                    <form asp-action="Contact" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label asp-for="Name" class="form-label">
+                                    <i class="fas fa-user me-1"></i>Full Name
+                                </label>
+                                <input asp-for="Name" class="form-control" placeholder="Enter your full name" />
+                                <span asp-validation-for="Name" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Email" class="form-label">
+                                    <i class="fas fa-envelope me-1"></i>Email Address
+                                </label>
+                                <input asp-for="Email" class="form-control" placeholder="Enter your email address" />
+                                <span asp-validation-for="Email" class="text-danger"></span>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label asp-for="Phone" class="form-label">
+                                    <i class="fas fa-phone me-1"></i>Phone Number (Optional)
+                                </label>
+                                <input asp-for="Phone" class="form-control" placeholder="Enter your phone number" />
+                                <span asp-validation-for="Phone" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Category" class="form-label">
+                                    <i class="fas fa-folder me-1"></i>Category
+                                </label>
+                                <select asp-for="Category" class="form-select">
+                                    <option value="General">General Inquiry</option>
+                                    <option value="Technical">Technical Support</option>
+                                    <option value="Billing">Billing Question</option>
+                                    <option value="Sales">Sales Inquiry</option>
+                                    <option value="Partnership">Partnership</option>
+                                    <option value="Feedback">Feedback</option>
+                                </select>
+                                <span asp-validation-for="Category" class="text-danger"></span>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label asp-for="Subject" class="form-label">
+                                <i class="fas fa-tag me-1"></i>Subject
+                            </label>
+                            <input asp-for="Subject" class="form-control" placeholder="Enter the subject of your message" />
+                            <span asp-validation-for="Subject" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label asp-for="Message" class="form-label">
+                                <i class="fas fa-comment me-1"></i>Message
+                            </label>
+                            <textarea asp-for="Message" class="form-control" rows="6" placeholder="Enter your message here..."></textarea>
+                            <span asp-validation-for="Message" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-paper-plane me-2"></i>Send Message
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact Information -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow h-100">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Contact Information</h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="mb-4">
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" 
+                                 style="width: 40px; height: 40px;">
+                                <i class="fas fa-envelope"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-0">Email</h6>
+                                <small class="text-muted">support@oproz.com</small>
+                            </div>
+                        </div>
+                        <p class="text-muted small ms-5">
+                            Send us an email and we'll respond within 24 hours.
+                        </p>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center me-3" 
+                                 style="width: 40px; height: 40px;">
+                                <i class="fas fa-phone"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-0">Phone</h6>
+                                <small class="text-muted">+1 (555) 123-4567</small>
+                            </div>
+                        </div>
+                        <p class="text-muted small ms-5">
+                            Call us during business hours (9 AM - 6 PM EST).
+                        </p>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="bg-info text-white rounded-circle d-flex align-items-center justify-content-center me-3" 
+                                 style="width: 40px; height: 40px;">
+                                <i class="fas fa-map-marker-alt"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-0">Address</h6>
+                                <small class="text-muted">123 Business Street<br>Tech City, TC 12345</small>
+                            </div>
+                        </div>
+                        <p class="text-muted small ms-5">
+                            Visit our office for in-person consultations.
+                        </p>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="bg-warning text-white rounded-circle d-flex align-items-center justify-content-center me-3" 
+                                 style="width: 40px; height: 40px;">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-0">Business Hours</h6>
+                                <small class="text-muted">Mon - Fri: 9 AM - 6 PM<br>Sat: 10 AM - 4 PM</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div>
+                        <h6 class="mb-3">Follow Us</h6>
+                        <div class="d-flex gap-2">
+                            <a href="#" class="btn btn-outline-primary btn-sm">
+                                <i class="fab fa-facebook-f"></i>
+                            </a>
+                            <a href="#" class="btn btn-outline-info btn-sm">
+                                <i class="fab fa-twitter"></i>
+                            </a>
+                            <a href="#" class="btn btn-outline-primary btn-sm">
+                                <i class="fab fa-linkedin-in"></i>
+                            </a>
+                            <a href="#" class="btn btn-outline-danger btn-sm">
+                                <i class="fab fa-instagram"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FAQ Section -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <h2 class="fw-bold text-center mb-5">Frequently Asked Questions</h2>
+            <div class="row">
+                <div class="col-lg-6">
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-body">
+                            <h6 class="card-title">How do I get started with OPROZ?</h6>
+                            <p class="card-text text-muted small">
+                                Simply register for an account, explore our services, and choose the solutions 
+                                that best fit your business needs.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-body">
+                            <h6 class="card-title">What payment methods do you accept?</h6>
+                            <p class="card-text text-muted small">
+                                We accept all major credit cards, debit cards, UPI, and net banking through 
+                                our secure Razorpay integration.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-body">
+                            <h6 class="card-title">Is my data secure on OPROZ?</h6>
+                            <p class="card-text text-muted small">
+                                Yes, we use enterprise-grade security measures including encryption, 
+                                secure authentication, and regular security audits.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-body">
+                            <h6 class="card-title">Do you offer custom solutions?</h6>
+                            <p class="card-text text-muted small">
+                                Absolutely! We work with businesses to create custom solutions tailored 
+                                to their specific requirements and industry needs.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

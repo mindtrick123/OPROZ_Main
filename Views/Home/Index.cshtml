@@ -1,0 +1,196 @@
+@{
+    ViewData["Title"] = "Home";
+}
+
+<!-- Hero Section -->
+<section class="hero-section bg-primary text-white py-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold mb-4">Welcome to OPROZ</h1>
+                <p class="lead mb-4">Your comprehensive business solutions platform. Connect with service providers, manage subscriptions, and grow your business with our innovative SaaS platform.</p>
+                <div class="d-flex gap-3">
+                    <a href="#services" class="btn btn-light btn-lg">
+                        <i class="fas fa-rocket me-2"></i>Explore Services
+                    </a>
+                    @if (!SignInManager.IsSignedIn(User))
+                    {
+                        <a asp-controller="Account" asp-action="Register" class="btn btn-outline-light btn-lg">
+                            <i class="fas fa-user-plus me-2"></i>Get Started
+                        </a>
+                    }
+                </div>
+            </div>
+            <div class="col-lg-6 text-center">
+                <i class="fas fa-chart-line" style="font-size: 15rem; opacity: 0.3;"></i>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="row text-center mb-5">
+            <div class="col-lg-12">
+                <h2 class="display-5 fw-bold">Why Choose OPROZ?</h2>
+                <p class="lead text-muted">Powerful features designed to help your business succeed</p>
+            </div>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                            <i class="fas fa-users fa-lg"></i>
+                        </div>
+                        <h5 class="card-title">Multi-Tenant Platform</h5>
+                        <p class="card-text text-muted">Secure, scalable multi-tenant architecture supporting multiple companies and users.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="bg-success text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                            <i class="fas fa-credit-card fa-lg"></i>
+                        </div>
+                        <h5 class="card-title">Integrated Payments</h5>
+                        <p class="card-text text-muted">Seamless payment processing with Razorpay integration for secure transactions.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="bg-info text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                            <i class="fas fa-headset fa-lg"></i>
+                        </div>
+                        <h5 class="card-title">24/7 Support</h5>
+                        <p class="card-text text-muted">Round-the-clock customer support to help you succeed with your business goals.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Services Section -->
+@if (ViewBag.FeaturedServices != null && ((List<Service>)ViewBag.FeaturedServices).Any())
+{
+    <section id="services" class="py-5 bg-light">
+        <div class="container">
+            <div class="row text-center mb-5">
+                <div class="col-lg-12">
+                    <h2 class="display-5 fw-bold">Featured Services</h2>
+                    <p class="lead text-muted">Discover our most popular business solutions</p>
+                </div>
+            </div>
+            <div class="row g-4">
+                @foreach (var service in (List<Service>)ViewBag.FeaturedServices)
+                {
+                    <div class="col-lg-4 col-md-6">
+                        <div class="card h-100 border-0 shadow-sm">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <span class="badge bg-primary">@service.Category</span>
+                                    <h6 class="text-primary fw-bold">₹@service.Price.ToString("N2")</h6>
+                                </div>
+                                <h5 class="card-title">@service.Name</h5>
+                                <p class="card-text text-muted">@(service.Description?.Length > 100 ? service.Description.Substring(0, 100) + "..." : service.Description)</p>
+                                @if (service.Company != null)
+                                {
+                                    <small class="text-muted">
+                                        <i class="fas fa-building me-1"></i>@service.Company.Name
+                                    </small>
+                                }
+                            </div>
+                            <div class="card-footer bg-transparent border-0">
+                                <a href="#" class="btn btn-outline-primary w-100">
+                                    <i class="fas fa-info-circle me-2"></i>Learn More
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+            <div class="text-center mt-4">
+                <a asp-controller="Home" asp-action="Services" class="btn btn-primary">
+                    <i class="fas fa-arrow-right me-2"></i>View All Services
+                </a>
+            </div>
+        </div>
+    </section>
+}
+
+<!-- Pricing Section -->
+@if (ViewBag.SubscriptionPlans != null && ((List<SubscriptionPlan>)ViewBag.SubscriptionPlans).Any())
+{
+    <section class="py-5">
+        <div class="container">
+            <div class="row text-center mb-5">
+                <div class="col-lg-12">
+                    <h2 class="display-5 fw-bold">Choose Your Plan</h2>
+                    <p class="lead text-muted">Flexible pricing options to fit your business needs</p>
+                </div>
+            </div>
+            <div class="row g-4 justify-content-center">
+                @foreach (var plan in (List<SubscriptionPlan>)ViewBag.SubscriptionPlans)
+                {
+                    <div class="col-lg-4 col-md-6">
+                        <div class="card h-100 border-0 shadow-sm @(plan.Name.Contains("Professional") ? "border-primary" : "")">
+                            @if (plan.Name.Contains("Professional"))
+                            {
+                                <div class="card-header bg-primary text-white text-center">
+                                    <small><i class="fas fa-star me-1"></i>Most Popular</small>
+                                </div>
+                            }
+                            <div class="card-body text-center p-4">
+                                <h5 class="card-title">@plan.Name</h5>
+                                <div class="mb-3">
+                                    <span class="display-6 fw-bold text-primary">₹@plan.Price.ToString("N0")</span>
+                                    <small class="text-muted">/@plan.BillingCycle.ToLower()</small>
+                                </div>
+                                <p class="card-text text-muted">@plan.Description</p>
+                                <div class="d-grid">
+                                    <a href="#" class="btn @(plan.Name.Contains("Professional") ? "btn-primary" : "btn-outline-primary")">
+                                        <i class="fas fa-check me-2"></i>Choose Plan
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </section>
+}
+
+<!-- CTA Section -->
+<section class="py-5 bg-primary text-white">
+    <div class="container">
+        <div class="row text-center">
+            <div class="col-lg-8 mx-auto">
+                <h2 class="display-5 fw-bold mb-4">Ready to Get Started?</h2>
+                <p class="lead mb-4">Join thousands of businesses already using OPROZ to streamline their operations and grow their revenue.</p>
+                @if (!SignInManager.IsSignedIn(User))
+                {
+                    <div class="d-flex justify-content-center gap-3">
+                        <a asp-controller="Account" asp-action="Register" class="btn btn-light btn-lg">
+                            <i class="fas fa-rocket me-2"></i>Start Free Trial
+                        </a>
+                        <a asp-controller="Home" asp-action="Contact" class="btn btn-outline-light btn-lg">
+                            <i class="fas fa-comments me-2"></i>Contact Sales
+                        </a>
+                    </div>
+                }
+                else
+                {
+                    <a asp-controller="Home" asp-action="Services" class="btn btn-light btn-lg">
+                        <i class="fas fa-arrow-right me-2"></i>Explore Services
+                    </a>
+                }
+            </div>
+        </div>
+    </div>
+</section>
