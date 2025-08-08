@@ -329,25 +329,38 @@ namespace OPROZ_Main.Controllers
                 .Include(p => p.SubscriptionPlan)
                 .Where(p => p.UserId == user.Id)
                 .OrderByDescending(p => p.PaymentDate)
-                .Select(p => new PaymentHistoryViewModel
-                {
-                    Id = p.Id,
-                    TransactionId = p.TransactionId,
-                    RazorpayPaymentId = p.RazorpayPaymentId,
-                    PlanName = p.SubscriptionPlan.Name,
-                    Amount = p.Amount,
-                    DiscountAmount = p.DiscountAmount,
-                    FinalAmount = p.FinalAmount,
-                    Status = p.Status,
-                    Method = p.Method,
-                    PaymentDate = p.PaymentDate,
-                    SubscriptionStartDate = p.SubscriptionStartDate,
-                    SubscriptionEndDate = p.SubscriptionEndDate,
-                    Notes = p.Notes
-                })
                 .ToListAsync();
 
-            return View(payments);
+            // Find active subscription
+            var activeSubscription = payments
+                .Where(p => p.Status == PaymentStatus.Success && 
+                           p.SubscriptionEndDate.HasValue && 
+                           p.SubscriptionEndDate.Value > DateTime.UtcNow)
+                .OrderByDescending(p => p.SubscriptionEndDate)
+                .FirstOrDefault();
+
+            var paymentViewModels = payments.Select(p => new PaymentHistoryViewModel
+            {
+                Id = p.Id,
+                TransactionId = p.TransactionId,
+                RazorpayPaymentId = p.RazorpayPaymentId,
+                PlanName = p.SubscriptionPlan.Name,
+                Amount = p.Amount,
+                DiscountAmount = p.DiscountAmount,
+                FinalAmount = p.FinalAmount,
+                Status = p.Status,
+                Method = p.Method,
+                PaymentDate = p.PaymentDate,
+                SubscriptionStartDate = p.SubscriptionStartDate,
+                SubscriptionEndDate = p.SubscriptionEndDate,
+                Notes = p.Notes,
+                IsActive = activeSubscription != null && activeSubscription.Id == p.Id
+            }).ToList();
+
+            ViewBag.ActiveSubscription = activeSubscription;
+            ViewBag.HasActiveSubscription = activeSubscription != null;
+
+            return View(paymentViewModels);
         }
 
         [HttpPost]
