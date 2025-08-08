@@ -1,0 +1,503 @@
+@model OPROZ_Main.ViewModels.UserDetailsViewModel
+@{
+    ViewData["Title"] = $"User Details - {Model.User.FirstName} {Model.User.LastName}";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="page-title-box">
+                <h4 class="page-title">User Details</h4>
+                <div class="page-title-right">
+                    <ol class="breadcrumb m-0">
+                        <li class="breadcrumb-item"><a href="@Url.Action("Index", "Admin")">Admin</a></li>
+                        <li class="breadcrumb-item"><a href="@Url.Action("Users", "Admin")">Users</a></li>
+                        <li class="breadcrumb-item active">@Model.User.FirstName @Model.User.LastName</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- User Information -->
+        <div class="col-xl-4">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 me-3">
+                            <div class="avatar-lg">
+                                <div class="avatar-title bg-primary rounded-circle">
+                                    @Model.User.FirstName.Substring(0, 1).ToUpper()@Model.User.LastName.Substring(0, 1).ToUpper()
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h5 class="mb-1">@Model.User.FirstName @Model.User.LastName</h5>
+                            <p class="text-muted mb-0">@Model.User.Email</p>
+                            <div class="mt-2">
+                                @if (Model.User.IsActive)
+                                {
+                                    <span class="badge bg-success">Active</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger">Inactive</span>
+                                }
+                                @if (Model.User.EmailConfirmed)
+                                {
+                                    <span class="badge bg-primary">Email Verified</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-warning">Email Unverified</span>
+                                }
+                                @foreach (var role in Model.Roles)
+                                {
+                                    <span class="badge bg-info">@role</span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <h6 class="font-14 text-uppercase mb-3">Contact Information</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm mb-0">
+                                <tbody>
+                                    <tr>
+                                        <td class="fw-medium">Email:</td>
+                                        <td><a href="mailto:@Model.User.Email">@Model.User.Email</a></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-medium">Phone:</td>
+                                        <td>@(Model.User.PhoneNumber ?? "Not provided")</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-medium">Company:</td>
+                                        <td>@(Model.User.Company?.Name ?? "Not assigned")</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-medium">Joined:</td>
+                                        <td>@Model.User.CreatedAt.ToString("MMM dd, yyyy")</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-medium">Last Login:</td>
+                                        <td>@(Model.User.LastLoginAt?.ToString("MMM dd, yyyy HH:mm") ?? "Never")</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <div class="d-grid gap-2">
+                            <a href="@Url.Action("EditUser", "Admin", new { id = Model.User.Id })" class="btn btn-primary">
+                                <i class="mdi mdi-pencil"></i> Edit User
+                            </a>
+                            <a href="@Url.Action("ResetPassword", "Admin", new { id = Model.User.Id })" class="btn btn-warning">
+                                <i class="mdi mdi-lock-reset"></i> Reset Password
+                            </a>
+                            @if (Model.User.IsActive)
+                            {
+                                <button type="button" class="btn btn-danger" onclick="suspendUser('@Model.User.Id', '@Model.User.FirstName @Model.User.LastName')">
+                                    <i class="mdi mdi-account-cancel"></i> Suspend User
+                                </button>
+                            }
+                            else
+                            {
+                                <button type="button" class="btn btn-success" onclick="reactivateUser('@Model.User.Id', '@Model.User.FirstName @Model.User.LastName')">
+                                    <i class="mdi mdi-account-check"></i> Reactivate User
+                                </button>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics and Activity -->
+        <div class="col-xl-8">
+            <!-- Statistics Cards -->
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-shrink-0 me-3">
+                                    <i class="mdi mdi-currency-usd text-success font-20"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-0">Total Spent</h6>
+                                    <h4 class="mt-1 mb-0">$@Model.Statistics.TotalSpent.ToString("N2")</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-shrink-0 me-3">
+                                    <i class="mdi mdi-package-variant text-primary font-20"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-0">Active Subscriptions</h6>
+                                    <h4 class="mt-1 mb-0">@Model.Statistics.ActiveSubscriptions</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-shrink-0 me-3">
+                                    <i class="mdi mdi-credit-card text-warning font-20"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-0">Total Payments</h6>
+                                    <h4 class="mt-1 mb-0">@Model.Statistics.TotalPayments</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-shrink-0 me-3">
+                                    <i class="mdi mdi-login text-info font-20"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-0">Login Count</h6>
+                                    <h4 class="mt-1 mb-0">@Model.Statistics.LoginCount</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Subscription History -->
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Subscription History</h5>
+                    @if (Model.SubscriptionHistory.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Service</th>
+                                        <th>Plan</th>
+                                        <th>Period</th>
+                                        <th>Amount</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var subscription in Model.SubscriptionHistory)
+                                    {
+                                        <tr>
+                                            <td>@subscription.ServiceName</td>
+                                            <td>@subscription.PlanName</td>
+                                            <td>
+                                                @subscription.StartDate.ToString("MMM dd, yyyy") - 
+                                                @subscription.EndDate.ToString("MMM dd, yyyy")
+                                            </td>
+                                            <td>$@subscription.Amount.ToString("N2")</td>
+                                            <td>
+                                                @if (subscription.IsActive)
+                                                {
+                                                    <span class="badge bg-success">Active</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-secondary">Expired</span>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted">No subscriptions found.</p>
+                    }
+                </div>
+            </div>
+
+            <!-- Payment History -->
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Recent Payment History</h5>
+                    @if (Model.PaymentHistory.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Transaction ID</th>
+                                        <th>Plan</th>
+                                        <th>Amount</th>
+                                        <th>Status</th>
+                                        <th>Method</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var payment in Model.PaymentHistory)
+                                    {
+                                        <tr>
+                                            <td>@payment.PaymentDate.ToString("MMM dd, yyyy")</td>
+                                            <td><small>@payment.TransactionId</small></td>
+                                            <td>@payment.SubscriptionPlan.Name</td>
+                                            <td>$@payment.FinalAmount.ToString("N2")</td>
+                                            <td>
+                                                @switch (payment.Status)
+                                                {
+                                                    case OPROZ_Main.Models.PaymentStatus.Success:
+                                                        <span class="badge bg-success">Success</span>
+                                                        break;
+                                                    case OPROZ_Main.Models.PaymentStatus.Failed:
+                                                        <span class="badge bg-danger">Failed</span>
+                                                        break;
+                                                    case OPROZ_Main.Models.PaymentStatus.Pending:
+                                                        <span class="badge bg-warning">Pending</span>
+                                                        break;
+                                                    case OPROZ_Main.Models.PaymentStatus.Refunded:
+                                                        <span class="badge bg-info">Refunded</span>
+                                                        break;
+                                                    case OPROZ_Main.Models.PaymentStatus.Cancelled:
+                                                        <span class="badge bg-secondary">Cancelled</span>
+                                                        break;
+                                                }
+                                            </td>
+                                            <td>@(payment.Method?.ToString() ?? "N/A")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted">No payment history found.</p>
+                    }
+                </div>
+            </div>
+
+            <!-- Recent Audit Logs -->
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Recent Activity</h5>
+                    @if (Model.RecentAuditLogs.Any())
+                    {
+                        <div class="timeline-alt">
+                            @foreach (var log in Model.RecentAuditLogs.Take(10))
+                            {
+                                <div class="timeline-item">
+                                    <i class="mdi mdi-circle bg-primary timeline-icon"></i>
+                                    <div class="timeline-item-info">
+                                        <h6 class="mt-0 mb-1">@log.Action.ToString()</h6>
+                                        <p class="font-14">@log.Description</p>
+                                        <p class="text-muted font-12 mb-0 mt-2">
+                                            @log.CreatedAt.ToString("MMM dd, yyyy HH:mm")
+                                            @if (!string.IsNullOrEmpty(log.IpAddress))
+                                            {
+                                                <span class="ms-2">from @log.IpAddress</span>
+                                            }
+                                        </p>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted">No recent activity found.</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Suspend User Modal -->
+<div class="modal fade" id="suspendUserModal" tabindex="-1" aria-labelledby="suspendUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="suspendUserModalLabel">Suspend User</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to suspend <strong id="suspendUserName"></strong>?</p>
+                <div class="mb-3">
+                    <label for="suspendReason" class="form-label">Reason for suspension</label>
+                    <textarea class="form-control" id="suspendReason" rows="3" placeholder="Enter reason for suspension..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmSuspendBtn">Suspend User</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let selectedUserId = '';
+
+        function suspendUser(userId, userName) {
+            selectedUserId = userId;
+            document.getElementById('suspendUserName').textContent = userName;
+            document.getElementById('suspendReason').value = '';
+            new bootstrap.Modal(document.getElementById('suspendUserModal')).show();
+        }
+
+        function reactivateUser(userId, userName) {
+            if (confirm(`Are you sure you want to reactivate ${userName}?`)) {
+                fetch('@Url.Action("ReactivateUser", "Admin")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                    },
+                    body: `id=${encodeURIComponent(userId)}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showAlert('success', data.message || 'User reactivated successfully');
+                        location.reload();
+                    } else {
+                        showAlert('danger', data.message || 'Failed to reactivate user');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showAlert('danger', 'An error occurred while reactivating the user');
+                });
+            }
+        }
+
+        document.getElementById('confirmSuspendBtn').addEventListener('click', function() {
+            const reason = document.getElementById('suspendReason').value.trim();
+            if (!reason) {
+                showAlert('warning', 'Please provide a reason for suspension');
+                return;
+            }
+
+            fetch('@Url.Action("SuspendUser", "Admin")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                },
+                body: `id=${encodeURIComponent(selectedUserId)}&reason=${encodeURIComponent(reason)}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('success', data.message || 'User suspended successfully');
+                    bootstrap.Modal.getInstance(document.getElementById('suspendUserModal')).hide();
+                    location.reload();
+                } else {
+                    showAlert('danger', data.message || 'Failed to suspend user');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('danger', 'An error occurred while suspending the user');
+            });
+        });
+
+        function showAlert(type, message) {
+            const alertHtml = `
+                <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            `;
+            document.querySelector('.container-fluid').insertAdjacentHTML('afterbegin', alertHtml);
+        }
+    </script>
+}
+
+<style>
+    .avatar-lg {
+        height: 4rem;
+        width: 4rem;
+    }
+
+    .avatar-title {
+        align-items: center;
+        background-color: #6c757d;
+        color: #fff;
+        display: flex;
+        font-weight: 500;
+        height: 100%;
+        justify-content: center;
+        width: 100%;
+        font-size: 1.5rem;
+    }
+
+    .timeline-alt {
+        position: relative;
+        padding: 0;
+    }
+
+    .timeline-item {
+        position: relative;
+        padding-left: 31px;
+        margin-bottom: 20px;
+    }
+
+    .timeline-icon {
+        position: absolute;
+        left: 0;
+        top: 4px;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        font-size: 8px;
+        line-height: 16px;
+        text-align: center;
+    }
+
+    .timeline-item-info h6 {
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .font-14 {
+        font-size: 14px;
+    }
+
+    .font-12 {
+        font-size: 12px;
+    }
+
+    .font-20 {
+        font-size: 20px;
+    }
+
+    .page-title-box {
+        padding: 20px 0;
+    }
+
+    .card {
+        border: none;
+        box-shadow: 0 0.75rem 1.5rem rgba(18, 38, 63, 0.03);
+        margin-bottom: 24px;
+    }
+</style>

@@ -1,0 +1,373 @@
+@model OPROZ_Main.ViewModels.ReportFilterViewModel
+@{
+    ViewData["Title"] = "Reports";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="page-title-box">
+                <h4 class="page-title">Reports & Analytics</h4>
+                <div class="page-title-right">
+                    <ol class="breadcrumb m-0">
+                        <li class="breadcrumb-item"><a href="@Url.Action("Index", "Admin")">Admin</a></li>
+                        <li class="breadcrumb-item active">Reports</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title mb-4">Generate Report</h5>
+                    
+                    <form asp-action="GenerateReport" method="post">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="ReportType" class="form-label">Report Type</label>
+                                    <select asp-for="ReportType" asp-items="Html.GetEnumSelectList<OPROZ_Main.ViewModels.ReportType>()" class="form-select" required>
+                                        <option value="">Select Report Type</option>
+                                    </select>
+                                    <span asp-validation-for="ReportType" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="ExportFormat" class="form-label">Export Format</label>
+                                    <select asp-for="ExportFormat" asp-items="Html.GetEnumSelectList<OPROZ_Main.ViewModels.ExportFormat>()" class="form-select" required>
+                                    </select>
+                                    <span asp-validation-for="ExportFormat" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="StartDate" class="form-label">Start Date</label>
+                                    <input asp-for="StartDate" type="date" class="form-control" />
+                                    <span asp-validation-for="StartDate" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="EndDate" class="form-label">End Date</label>
+                                    <input asp-for="EndDate" type="date" class="form-control" />
+                                    <span asp-validation-for="EndDate" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Optional Filters -->
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label asp-for="PlanType" class="form-label">Plan Type (Optional)</label>
+                                    <select asp-for="PlanType" asp-items="Html.GetEnumSelectList<OPROZ_Main.Models.PlanType>()" class="form-select">
+                                        <option value="">All Plan Types</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label asp-for="UserStatus" class="form-label">User Status (Optional)</label>
+                                    <select asp-for="UserStatus" asp-items="Html.GetEnumSelectList<OPROZ_Main.ViewModels.UserStatus>()" class="form-select">
+                                        <option value="">All Statuses</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label asp-for="PaymentStatus" class="form-label">Payment Status (Optional)</label>
+                                    <select asp-for="PaymentStatus" asp-items="Html.GetEnumSelectList<OPROZ_Main.Models.PaymentStatus>()" class="form-select">
+                                        <option value="">All Payment Statuses</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="ServiceId" class="form-label">Service (Optional)</label>
+                                    <select asp-for="ServiceId" class="form-select">
+                                        <option value="">All Services</option>
+                                        @if (ViewBag.Services != null)
+                                        {
+                                            @foreach (var service in (IEnumerable<dynamic>)ViewBag.Services)
+                                            {
+                                                <option value="@service.Id">@service.Name</option>
+                                            }
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">&nbsp;</label>
+                                    <div class="d-grid">
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="mdi mdi-download"></i> Generate & Download Report
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Report Cards -->
+    <div class="row">
+        <div class="col-md-6 col-xl-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 me-3">
+                            <div class="avatar-sm">
+                                <div class="avatar-title bg-primary rounded">
+                                    <i class="mdi mdi-account-group font-20"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h5 class="font-16 mb-1">Users Report</h5>
+                            <p class="text-muted mb-2">Export all user data</p>
+                            <form asp-action="GenerateReport" method="post" class="d-inline">
+                                <input asp-for="ReportType" type="hidden" value="Users" />
+                                <input asp-for="ExportFormat" type="hidden" value="Excel" />
+                                <button type="submit" class="btn btn-sm btn-outline-primary">
+                                    <i class="mdi mdi-file-excel"></i> Excel
+                                </button>
+                            </form>
+                            <form asp-action="GenerateReport" method="post" class="d-inline ms-1">
+                                <input asp-for="ReportType" type="hidden" value="Users" />
+                                <input asp-for="ExportFormat" type="hidden" value="CSV" />
+                                <button type="submit" class="btn btn-sm btn-outline-success">
+                                    <i class="mdi mdi-file-delimited"></i> CSV
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-xl-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 me-3">
+                            <div class="avatar-sm">
+                                <div class="avatar-title bg-success rounded">
+                                    <i class="mdi mdi-package-variant font-20"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h5 class="font-16 mb-1">Subscriptions Report</h5>
+                            <p class="text-muted mb-2">Export subscription data</p>
+                            <form asp-action="GenerateReport" method="post" class="d-inline">
+                                <input asp-for="ReportType" type="hidden" value="Subscriptions" />
+                                <input asp-for="ExportFormat" type="hidden" value="Excel" />
+                                <button type="submit" class="btn btn-sm btn-outline-primary">
+                                    <i class="mdi mdi-file-excel"></i> Excel
+                                </button>
+                            </form>
+                            <form asp-action="GenerateReport" method="post" class="d-inline ms-1">
+                                <input asp-for="ReportType" type="hidden" value="Subscriptions" />
+                                <input asp-for="ExportFormat" type="hidden" value="CSV" />
+                                <button type="submit" class="btn btn-sm btn-outline-success">
+                                    <i class="mdi mdi-file-delimited"></i> CSV
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-xl-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 me-3">
+                            <div class="avatar-sm">
+                                <div class="avatar-title bg-warning rounded">
+                                    <i class="mdi mdi-credit-card font-20"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h5 class="font-16 mb-1">Payments Report</h5>
+                            <p class="text-muted mb-2">Export payment data</p>
+                            <form asp-action="GenerateReport" method="post" class="d-inline">
+                                <input asp-for="ReportType" type="hidden" value="Payments" />
+                                <input asp-for="ExportFormat" type="hidden" value="Excel" />
+                                <button type="submit" class="btn btn-sm btn-outline-primary">
+                                    <i class="mdi mdi-file-excel"></i> Excel
+                                </button>
+                            </form>
+                            <form asp-action="GenerateReport" method="post" class="d-inline ms-1">
+                                <input asp-for="ReportType" type="hidden" value="Payments" />
+                                <input asp-for="ExportFormat" type="hidden" value="CSV" />
+                                <button type="submit" class="btn btn-sm btn-outline-success">
+                                    <i class="mdi mdi-file-delimited"></i> CSV
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-xl-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 me-3">
+                            <div class="avatar-sm">
+                                <div class="avatar-title bg-info rounded">
+                                    <i class="mdi mdi-history font-20"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h5 class="font-16 mb-1">Audit Log Report</h5>
+                            <p class="text-muted mb-2">Export audit trail</p>
+                            <form asp-action="GenerateReport" method="post" class="d-inline">
+                                <input asp-for="ReportType" type="hidden" value="AuditLog" />
+                                <input asp-for="ExportFormat" type="hidden" value="Excel" />
+                                <button type="submit" class="btn btn-sm btn-outline-primary">
+                                    <i class="mdi mdi-file-excel"></i> Excel
+                                </button>
+                            </form>
+                            <form asp-action="GenerateReport" method="post" class="d-inline ms-1">
+                                <input asp-for="ReportType" type="hidden" value="AuditLog" />
+                                <input asp-for="ExportFormat" type="hidden" value="CSV" />
+                                <button type="submit" class="btn btn-sm btn-outline-success">
+                                    <i class="mdi mdi-file-delimited"></i> CSV
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Report Information -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Report Information</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Available Reports:</h6>
+                            <ul class="list-unstyled">
+                                <li><i class="mdi mdi-check text-success"></i> <strong>Users Report:</strong> Complete user data including profiles, contact information, and status</li>
+                                <li><i class="mdi mdi-check text-success"></i> <strong>Subscriptions Report:</strong> Active and historical subscription data with plan details</li>
+                                <li><i class="mdi mdi-check text-success"></i> <strong>Payments Report:</strong> Payment transactions, amounts, and status information</li>
+                                <li><i class="mdi mdi-check text-success"></i> <strong>Services Report:</strong> Service usage statistics and revenue data</li>
+                                <li><i class="mdi mdi-check text-success"></i> <strong>Audit Log Report:</strong> System activity and admin action trails</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Export Formats:</h6>
+                            <ul class="list-unstyled">
+                                <li><i class="mdi mdi-file-excel text-primary"></i> <strong>Excel (.xlsx):</strong> Rich formatting with multiple sheets</li>
+                                <li><i class="mdi mdi-file-delimited text-success"></i> <strong>CSV (.csv):</strong> Simple comma-separated values for import</li>
+                            </ul>
+                            <br />
+                            <h6>Filter Options:</h6>
+                            <ul class="list-unstyled">
+                                <li><i class="mdi mdi-calendar text-info"></i> Date range filtering</li>
+                                <li><i class="mdi mdi-filter text-info"></i> Status and type filtering</li>
+                                <li><i class="mdi mdi-cog text-info"></i> Service-specific filtering</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Set default date range (last 30 days)
+        document.addEventListener('DOMContentLoaded', function() {
+            const today = new Date();
+            const thirtyDaysAgo = new Date(today.getTime() - (30 * 24 * 60 * 60 * 1000));
+            
+            const startDateInput = document.querySelector('input[name="StartDate"]');
+            const endDateInput = document.querySelector('input[name="EndDate"]');
+            
+            if (!startDateInput.value) {
+                startDateInput.value = thirtyDaysAgo.toISOString().split('T')[0];
+            }
+            
+            if (!endDateInput.value) {
+                endDateInput.value = today.toISOString().split('T')[0];
+            }
+        });
+
+        // Show loading spinner on form submit
+        document.querySelector('form').addEventListener('submit', function() {
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalHtml = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="mdi mdi-loading mdi-spin"></i> Generating...';
+            submitBtn.disabled = true;
+            
+            // Re-enable after 5 seconds (in case of error)
+            setTimeout(() => {
+                submitBtn.innerHTML = originalHtml;
+                submitBtn.disabled = false;
+            }, 5000);
+        });
+    </script>
+}
+
+<style>
+    .page-title-box {
+        padding: 20px 0;
+    }
+
+    .card {
+        border: none;
+        box-shadow: 0 0.75rem 1.5rem rgba(18, 38, 63, 0.03);
+        margin-bottom: 24px;
+    }
+
+    .avatar-sm {
+        height: 3rem;
+        width: 3rem;
+    }
+
+    .avatar-title {
+        align-items: center;
+        background-color: #6c757d;
+        color: #fff;
+        display: flex;
+        font-weight: 500;
+        height: 100%;
+        justify-content: center;
+        width: 100%;
+    }
+
+    .font-16 {
+        font-size: 16px;
+    }
+
+    .font-20 {
+        font-size: 20px;
+    }
+</style>
