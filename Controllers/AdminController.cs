@@ -18,6 +18,7 @@ namespace OPROZ_Main.Controllers
         private readonly IUserManagementService _userManagementService;
         private readonly IAuditLogService _auditLogService;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
         private readonly ILogger<AdminController> _logger;
 
         public AdminController(
@@ -27,6 +28,7 @@ namespace OPROZ_Main.Controllers
             IUserManagementService userManagementService,
             IAuditLogService auditLogService,
             UserManager<ApplicationUser> userManager,
+            RoleManager<IdentityRole> roleManager,
             ILogger<AdminController> logger)
         {
             _context = context;
@@ -35,6 +37,7 @@ namespace OPROZ_Main.Controllers
             _userManagementService = userManagementService;
             _auditLogService = auditLogService;
             _userManager = userManager;
+            _roleManager = roleManager;
             _logger = logger;
         }
 
@@ -1199,6 +1202,617 @@ namespace OPROZ_Main.Controllers
         private async Task<bool> ServiceExistsAsync(int id)
         {
             return await _context.Services.AnyAsync(e => e.Id == id);
+        }
+
+        // ===============================
+        // SUBSCRIPTION PLANS MANAGEMENT
+        // ===============================
+
+        public async Task<IActionResult> SubscriptionPlans(string? search, int page = 1, bool? isActive = null, PlanType? planType = null, PlanDuration? duration = null, int? serviceId = null)
+        {
+            try
+            {
+                var query = _context.SubscriptionPlans.Include(sp => sp.Service).AsQueryable();
+
+                if (!string.IsNullOrEmpty(search))
+                {
+                    query = query.Where(sp => sp.Name.Contains(search) || sp.Description!.Contains(search) || sp.Service.Name.Contains(search));
+                }
+
+                if (isActive.HasValue)
+                {
+                    query = query.Where(sp => sp.IsActive == isActive.Value);
+                }
+
+                if (planType.HasValue)
+                {
+                    query = query.Where(sp => sp.Type == planType.Value);
+                }
+
+                if (duration.HasValue)
+                {
+                    query = query.Where(sp => sp.Duration == duration.Value);
+                }
+
+                if (serviceId.HasValue)
+                {
+                    query = query.Where(sp => sp.ServiceId == serviceId.Value);
+                }
+
+                query = query.OrderBy(sp => sp.Service.Name).ThenBy(sp => sp.Type).ThenBy(sp => sp.Duration);
+
+                var pageSize = 10;
+                var totalCount = await query.CountAsync();
+                var subscriptionPlans = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+
+                // Get services for filter dropdown
+                var services = await _context.Services
+                    .Where(s => s.IsActive)
+                    .Select(s => new { s.Id, s.Name })
+                    .ToListAsync();
+
+                ViewBag.Search = search;
+                ViewBag.IsActive = isActive;
+                ViewBag.PlanType = planType;
+                ViewBag.Duration = duration;
+                ViewBag.ServiceId = serviceId;
+                ViewBag.Services = services;
+                ViewBag.CurrentPage = page;
+                ViewBag.TotalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+                ViewBag.TotalCount = totalCount;
+
+                return View(subscriptionPlans);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading subscription plans");
+                TempData["Error"] = "Error loading subscription plans. Please try again.";
+                return View(new List<SubscriptionPlan>());
+            }
+        }
+
+        public async Task<IActionResult> SubscriptionPlanDetails(int id)
+        {
+            try
+            {
+                var subscriptionPlan = await _context.SubscriptionPlans
+                    .Include(sp => sp.Service)
+                    .Include(sp => sp.PaymentHistories)
+                        .ThenInclude(ph => ph.User)
+                    .FirstOrDefaultAsync(sp => sp.Id == id);
+
+                if (subscriptionPlan == null)
+                    return NotFound();
+
+                return View(subscriptionPlan);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading subscription plan details for {PlanId}", id);
+                TempData["Error"] = "Error loading subscription plan details. Please try again.";
+                return RedirectToAction(nameof(SubscriptionPlans));
+            }
+        }
+
+        public async Task<IActionResult> CreateSubscriptionPlan()
+        {
+            var services = await _context.Services
+                .Where(s => s.IsActive)
+                .Select(s => new { s.Id, s.Name })
+                .ToListAsync();
+
+            ViewBag.Services = services;
+            return View(new SubscriptionPlan { MaxUsers = 1, MaxStorage = 1024 });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateSubscriptionPlan(SubscriptionPlan subscriptionPlan)
+        {
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    subscriptionPlan.CreatedAt = DateTime.UtcNow;
+                    _context.SubscriptionPlans.Add(subscriptionPlan);
+                    await _context.SaveChangesAsync();
+
+                    var currentUser = await _userManager.GetUserAsync(User);
+                    await _auditLogService.LogUserActionAsync(
+                        currentUser?.Id,
+                        currentUser?.Email,
+                        "Create Subscription Plan",
+                        $"Created subscription plan: {subscriptionPlan.Name}",
+                        Request.HttpContext.Connection.RemoteIpAddress?.ToString()
+                    );
+
+                    TempData["Success"] = "Subscription plan created successfully.";
+                    return RedirectToAction(nameof(SubscriptionPlans));
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error creating subscription plan");
+                    TempData["Error"] = "Error creating subscription plan. Please try again.";
+                }
+            }
+
+            var services = await _context.Services
+                .Where(s => s.IsActive)
+                .Select(s => new { s.Id, s.Name })
+                .ToListAsync();
+
+            ViewBag.Services = services;
+            return View(subscriptionPlan);
+        }
+
+        public async Task<IActionResult> EditSubscriptionPlan(int id)
+        {
+            try
+            {
+                var subscriptionPlan = await _context.SubscriptionPlans.FindAsync(id);
+                if (subscriptionPlan == null)
+                    return NotFound();
+
+                var services = await _context.Services
+                    .Where(s => s.IsActive)
+                    .Select(s => new { s.Id, s.Name })
+                    .ToListAsync();
+
+                ViewBag.Services = services;
+                return View(subscriptionPlan);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading subscription plan for edit {PlanId}", id);
+                TempData["Error"] = "Error loading subscription plan. Please try again.";
+                return RedirectToAction(nameof(SubscriptionPlans));
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditSubscriptionPlan(int id, SubscriptionPlan subscriptionPlan)
+        {
+            if (id != subscriptionPlan.Id)
+                return NotFound();
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    subscriptionPlan.UpdatedAt = DateTime.UtcNow;
+                    _context.Update(subscriptionPlan);
+                    await _context.SaveChangesAsync();
+
+                    var currentUser = await _userManager.GetUserAsync(User);
+                    await _auditLogService.LogUserActionAsync(
+                        currentUser?.Id,
+                        currentUser?.Email,
+                        "Update Subscription Plan",
+                        $"Updated subscription plan: {subscriptionPlan.Name}",
+                        Request.HttpContext.Connection.RemoteIpAddress?.ToString()
+                    );
+
+                    TempData["Success"] = "Subscription plan updated successfully.";
+                    return RedirectToAction(nameof(SubscriptionPlans));
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!await SubscriptionPlanExistsAsync(subscriptionPlan.Id))
+                        return NotFound();
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error updating subscription plan {PlanId}", id);
+                    TempData["Error"] = "Error updating subscription plan. Please try again.";
+                }
+            }
+
+            var services = await _context.Services
+                .Where(s => s.IsActive)
+                .Select(s => new { s.Id, s.Name })
+                .ToListAsync();
+
+            ViewBag.Services = services;
+            return View(subscriptionPlan);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DeleteSubscriptionPlan(int id)
+        {
+            try
+            {
+                var subscriptionPlan = await _context.SubscriptionPlans.FindAsync(id);
+                if (subscriptionPlan == null)
+                    return Json(new { success = false, message = "Subscription plan not found." });
+
+                // Check if plan is being used
+                var isUsed = await _context.PaymentHistories.AnyAsync(p => p.SubscriptionPlanId == id);
+                if (isUsed)
+                {
+                    return Json(new { success = false, message = "Cannot delete subscription plan that has been used in payments." });
+                }
+
+                _context.SubscriptionPlans.Remove(subscriptionPlan);
+                await _context.SaveChangesAsync();
+
+                var currentUser = await _userManager.GetUserAsync(User);
+                await _auditLogService.LogUserActionAsync(
+                    currentUser?.Id,
+                    currentUser?.Email,
+                    "Delete Subscription Plan",
+                    $"Deleted subscription plan: {subscriptionPlan.Name}",
+                    Request.HttpContext.Connection.RemoteIpAddress?.ToString()
+                );
+
+                return Json(new { success = true, message = "Subscription plan deleted successfully." });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting subscription plan {PlanId}", id);
+                return Json(new { success = false, message = "Error deleting subscription plan. Please try again." });
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ToggleSubscriptionPlanStatus(int id)
+        {
+            try
+            {
+                var subscriptionPlan = await _context.SubscriptionPlans.FindAsync(id);
+                if (subscriptionPlan == null)
+                    return Json(new { success = false, message = "Subscription plan not found." });
+
+                subscriptionPlan.IsActive = !subscriptionPlan.IsActive;
+                subscriptionPlan.UpdatedAt = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
+
+                var currentUser = await _userManager.GetUserAsync(User);
+                await _auditLogService.LogUserActionAsync(
+                    currentUser?.Id,
+                    currentUser?.Email,
+                    "Toggle Subscription Plan Status",
+                    $"Set subscription plan {subscriptionPlan.Name} status to {(subscriptionPlan.IsActive ? "Active" : "Inactive")}",
+                    Request.HttpContext.Connection.RemoteIpAddress?.ToString()
+                );
+
+                return Json(new { success = true, message = $"Subscription plan {(subscriptionPlan.IsActive ? "activated" : "deactivated")} successfully.", isActive = subscriptionPlan.IsActive });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error toggling subscription plan status {PlanId}", id);
+                return Json(new { success = false, message = "Error updating subscription plan status. Please try again." });
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ToggleSubscriptionPlanPopular(int id)
+        {
+            try
+            {
+                var subscriptionPlan = await _context.SubscriptionPlans.FindAsync(id);
+                if (subscriptionPlan == null)
+                    return Json(new { success = false, message = "Subscription plan not found." });
+
+                subscriptionPlan.IsPopular = !subscriptionPlan.IsPopular;
+                subscriptionPlan.UpdatedAt = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
+
+                var currentUser = await _userManager.GetUserAsync(User);
+                await _auditLogService.LogUserActionAsync(
+                    currentUser?.Id,
+                    currentUser?.Email,
+                    "Toggle Subscription Plan Popular",
+                    $"Set subscription plan {subscriptionPlan.Name} popular status to {(subscriptionPlan.IsPopular ? "Popular" : "Not Popular")}",
+                    Request.HttpContext.Connection.RemoteIpAddress?.ToString()
+                );
+
+                return Json(new { success = true, message = $"Subscription plan {(subscriptionPlan.IsPopular ? "marked as popular" : "unmarked as popular")} successfully.", isPopular = subscriptionPlan.IsPopular });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error toggling subscription plan popular status {PlanId}", id);
+                return Json(new { success = false, message = "Error updating subscription plan popular status. Please try again." });
+            }
+        }
+
+        private async Task<bool> SubscriptionPlanExistsAsync(int id)
+        {
+            return await _context.SubscriptionPlans.AnyAsync(e => e.Id == id);
+        }
+
+        // ===============================
+        // PAYMENT HISTORY MANAGEMENT
+        // ===============================
+
+        public async Task<IActionResult> PaymentHistory(string? search, int page = 1, PaymentStatus? status = null, DateTime? startDate = null, DateTime? endDate = null)
+        {
+            try
+            {
+                var query = _context.PaymentHistories
+                    .Include(ph => ph.User)
+                    .Include(ph => ph.SubscriptionPlan)
+                    .Include(ph => ph.Offer)
+                    .AsQueryable();
+
+                if (!string.IsNullOrEmpty(search))
+                {
+                    query = query.Where(ph => ph.User.FirstName.Contains(search) || 
+                                            ph.User.LastName.Contains(search) ||
+                                            ph.User.Email.Contains(search) ||
+                                            ph.TransactionId.Contains(search) ||
+                                            (ph.RazorpayPaymentId != null && ph.RazorpayPaymentId.Contains(search)) ||
+                                            (ph.RazorpayOrderId != null && ph.RazorpayOrderId.Contains(search)));
+                }
+
+                if (status.HasValue)
+                {
+                    query = query.Where(ph => ph.Status == status.Value);
+                }
+
+                if (startDate.HasValue)
+                {
+                    query = query.Where(ph => ph.PaymentDate >= startDate.Value);
+                }
+
+                if (endDate.HasValue)
+                {
+                    query = query.Where(ph => ph.PaymentDate <= endDate.Value.AddDays(1));
+                }
+
+                query = query.OrderByDescending(ph => ph.PaymentDate);
+
+                var pageSize = 15;
+                var totalCount = await query.CountAsync();
+                var paymentHistories = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+
+                ViewBag.Search = search;
+                ViewBag.Status = status;
+                ViewBag.StartDate = startDate?.ToString("yyyy-MM-dd");
+                ViewBag.EndDate = endDate?.ToString("yyyy-MM-dd");
+                ViewBag.CurrentPage = page;
+                ViewBag.TotalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+                ViewBag.TotalCount = totalCount;
+
+                return View(paymentHistories);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading payment history");
+                TempData["Error"] = "Error loading payment history. Please try again.";
+                return View(new List<PaymentHistory>());
+            }
+        }
+
+        public async Task<IActionResult> PaymentDetails(int id)
+        {
+            try
+            {
+                var payment = await _context.PaymentHistories
+                    .Include(ph => ph.User)
+                    .Include(ph => ph.SubscriptionPlan)
+                        .ThenInclude(sp => sp.Service)
+                    .Include(ph => ph.Offer)
+                    .FirstOrDefaultAsync(ph => ph.Id == id);
+
+                if (payment == null)
+                    return NotFound();
+
+                return View(payment);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading payment details for {PaymentId}", id);
+                TempData["Error"] = "Error loading payment details. Please try again.";
+                return RedirectToAction(nameof(PaymentHistory));
+            }
+        }
+
+        // ===============================
+        // ROLES MANAGEMENT
+        // ===============================
+
+        public async Task<IActionResult> Roles(string? search, int page = 1)
+        {
+            try
+            {
+                var query = _roleManager.Roles.AsQueryable();
+
+                if (!string.IsNullOrEmpty(search))
+                {
+                    query = query.Where(r => r.Name!.Contains(search));
+                }
+
+                query = query.OrderBy(r => r.Name);
+
+                var pageSize = 10;
+                var totalCount = await query.CountAsync();
+                var roles = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+
+                ViewBag.Search = search;
+                ViewBag.CurrentPage = page;
+                ViewBag.TotalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+                ViewBag.TotalCount = totalCount;
+
+                return View(roles);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading roles");
+                TempData["Error"] = "Error loading roles. Please try again.";
+                return View(new List<IdentityRole>());
+            }
+        }
+
+        public IActionResult CreateRole()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateRole(string name, string? description)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                ModelState.AddModelError("Name", "Role name is required.");
+                return View();
+            }
+
+            try
+            {
+                var role = new IdentityRole(name.Trim());
+                var result = await _roleManager.CreateAsync(role);
+
+                if (result.Succeeded)
+                {
+                    var currentUser = await _userManager.GetUserAsync(User);
+                    await _auditLogService.LogUserActionAsync(
+                        currentUser?.Id,
+                        currentUser?.Email,
+                        "Create Role",
+                        $"Created role: {name}",
+                        Request.HttpContext.Connection.RemoteIpAddress?.ToString()
+                    );
+
+                    TempData["Success"] = "Role created successfully.";
+                    return RedirectToAction(nameof(Roles));
+                }
+
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError("", error.Description);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating role {RoleName}", name);
+                TempData["Error"] = "Error creating role. Please try again.";
+            }
+
+            return View();
+        }
+
+        public async Task<IActionResult> EditRole(string id)
+        {
+            if (string.IsNullOrEmpty(id))
+                return NotFound();
+
+            try
+            {
+                var role = await _roleManager.FindByIdAsync(id);
+                if (role == null)
+                    return NotFound();
+
+                return View(role);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading role for edit {RoleId}", id);
+                TempData["Error"] = "Error loading role. Please try again.";
+                return RedirectToAction(nameof(Roles));
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditRole(string id, string name)
+        {
+            if (string.IsNullOrEmpty(id) || string.IsNullOrWhiteSpace(name))
+            {
+                ModelState.AddModelError("Name", "Role name is required.");
+                return View();
+            }
+
+            try
+            {
+                var role = await _roleManager.FindByIdAsync(id);
+                if (role == null)
+                    return NotFound();
+
+                var oldName = role.Name;
+                role.Name = name.Trim();
+                var result = await _roleManager.UpdateAsync(role);
+
+                if (result.Succeeded)
+                {
+                    var currentUser = await _userManager.GetUserAsync(User);
+                    await _auditLogService.LogUserActionAsync(
+                        currentUser?.Id,
+                        currentUser?.Email,
+                        "Update Role",
+                        $"Updated role from '{oldName}' to '{name}'",
+                        Request.HttpContext.Connection.RemoteIpAddress?.ToString()
+                    );
+
+                    TempData["Success"] = "Role updated successfully.";
+                    return RedirectToAction(nameof(Roles));
+                }
+
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError("", error.Description);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating role {RoleId}", id);
+                TempData["Error"] = "Error updating role. Please try again.";
+            }
+
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DeleteRole(string id)
+        {
+            if (string.IsNullOrEmpty(id))
+                return Json(new { success = false, message = "Invalid role ID." });
+
+            try
+            {
+                var role = await _roleManager.FindByIdAsync(id);
+                if (role == null)
+                    return Json(new { success = false, message = "Role not found." });
+
+                // Check if role is being used by any users
+                var usersInRole = await _userManager.GetUsersInRoleAsync(role.Name!);
+                if (usersInRole.Any())
+                {
+                    return Json(new { success = false, message = $"Cannot delete role '{role.Name}' because it is assigned to {usersInRole.Count} user(s)." });
+                }
+
+                // Prevent deletion of system roles
+                var systemRoles = new[] { "Admin", "Manager", "User" };
+                if (systemRoles.Contains(role.Name))
+                {
+                    return Json(new { success = false, message = $"Cannot delete system role '{role.Name}'." });
+                }
+
+                var result = await _roleManager.DeleteAsync(role);
+                if (result.Succeeded)
+                {
+                    var currentUser = await _userManager.GetUserAsync(User);
+                    await _auditLogService.LogUserActionAsync(
+                        currentUser?.Id,
+                        currentUser?.Email,
+                        "Delete Role",
+                        $"Deleted role: {role.Name}",
+                        Request.HttpContext.Connection.RemoteIpAddress?.ToString()
+                    );
+
+                    return Json(new { success = true, message = "Role deleted successfully." });
+                }
+
+                var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                return Json(new { success = false, message = $"Failed to delete role: {errors}" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting role {RoleId}", id);
+                return Json(new { success = false, message = "Error deleting role. Please try again." });
+            }
         }
 
         // Help Queries Management
