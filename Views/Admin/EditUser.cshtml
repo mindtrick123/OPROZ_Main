@@ -1,0 +1,397 @@
+@model OPROZ_Main.ViewModels.EditUserViewModel
+@{
+    ViewData["Title"] = "Edit User";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="page-title-box">
+                <h4 class="page-title">Edit User</h4>
+                <div class="page-title-right">
+                    <ol class="breadcrumb m-0">
+                        <li class="breadcrumb-item"><a href="@Url.Action("Index", "Admin")">Admin</a></li>
+                        <li class="breadcrumb-item"><a href="@Url.Action("Users", "Admin")">Users</a></li>
+                        <li class="breadcrumb-item active">Edit User</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title mb-4">User Information</h5>
+
+                    <form asp-action="EditUser" method="post" novalidate>
+                        <input asp-for="Id" type="hidden" />
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="FirstName" class="form-label">First Name</label>
+                                    <input asp-for="FirstName" class="form-control" placeholder="Enter first name" />
+                                    <span asp-validation-for="FirstName" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="LastName" class="form-label">Last Name</label>
+                                    <input asp-for="LastName" class="form-control" placeholder="Enter last name" />
+                                    <span asp-validation-for="LastName" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="Email" class="form-label">Email Address</label>
+                                    <input asp-for="Email" type="email" class="form-control" placeholder="Enter email address" />
+                                    <span asp-validation-for="Email" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="PhoneNumber" class="form-label">Phone Number</label>
+                                    <input asp-for="PhoneNumber" class="form-control" placeholder="Enter phone number" />
+                                    <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="CompanyId" class="form-label">Company</label>
+                                    <select asp-for="CompanyId" class="form-select">
+                                        <option value="">No Company</option>
+                                        @foreach (var company in Model.Companies)
+                                        {
+                                            <option value="@company.Id" selected="@(company.Id == Model.CompanyId)">@company.Name</option>
+                                        }
+                                    </select>
+                                    <span asp-validation-for="CompanyId" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">User Status</label>
+                                    <div class="form-check-container">
+                                        <div class="form-check">
+                                            <input asp-for="IsActive" class="form-check-input" type="checkbox" />
+                                            <label asp-for="IsActive" class="form-check-label">
+                                                Active User
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input asp-for="EmailConfirmed" class="form-check-input" type="checkbox" />
+                                            <label asp-for="EmailConfirmed" class="form-check-label">
+                                                Email Confirmed
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="mb-3">
+                                    <label class="form-label">User Roles</label>
+                                    <div class="role-selection">
+                                        @foreach (var role in Model.AvailableRoles)
+                                        {
+                                            <div class="form-check form-check-inline">
+                                                <input type="checkbox" 
+                                                       name="SelectedRoles" 
+                                                       value="@role" 
+                                                       class="form-check-input" 
+                                                       id="role_@role"
+                                                       @(Model.SelectedRoles.Contains(role) ? "checked" : "") />
+                                                <label class="form-check-label" for="role_@role">
+                                                    @role
+                                                </label>
+                                            </div>
+                                        }
+                                    </div>
+                                    <small class="form-text text-muted">
+                                        Select one or more roles for this user. Be careful with Admin and Manager roles.
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="mb-3">
+                                    <div class="d-flex gap-2">
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="mdi mdi-content-save"></i> Save Changes
+                                        </button>
+                                        <a href="@Url.Action("UserDetails", "Admin", new { id = Model.Id })" class="btn btn-secondary">
+                                            <i class="mdi mdi-arrow-left"></i> Back to Details
+                                        </a>
+                                        <a href="@Url.Action("Users", "Admin")" class="btn btn-outline-secondary">
+                                            <i class="mdi mdi-view-list"></i> Back to Users List
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Security Actions Card -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title mb-4">Security Actions</h5>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="d-grid">
+                                <a href="@Url.Action("ResetPassword", "Admin", new { id = Model.Id })" class="btn btn-warning">
+                                    <i class="mdi mdi-lock-reset"></i> Reset Password
+                                </a>
+                            </div>
+                            <small class="text-muted mt-2 d-block">Force a password reset for this user</small>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="d-grid">
+                                @if (Model.IsActive)
+                                {
+                                    <button type="button" class="btn btn-danger" onclick="suspendUser('@Model.Id', '@Model.FirstName @Model.LastName')">
+                                        <i class="mdi mdi-account-cancel"></i> Suspend Account
+                                    </button>
+                                    <small class="text-muted mt-2 d-block">Temporarily disable this user account</small>
+                                }
+                                else
+                                {
+                                    <button type="button" class="btn btn-success" onclick="reactivateUser('@Model.Id', '@Model.FirstName @Model.LastName')">
+                                        <i class="mdi mdi-account-check"></i> Reactivate Account
+                                    </button>
+                                    <small class="text-muted mt-2 d-block">Reactivate this suspended account</small>
+                                }
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="d-grid">
+                                <button type="button" class="btn btn-info" onclick="sendVerificationEmail('@Model.Id')">
+                                    <i class="mdi mdi-email-send"></i> Send Verification Email
+                                </button>
+                            </div>
+                            <small class="text-muted mt-2 d-block">Resend email verification link</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Suspend User Modal -->
+<div class="modal fade" id="suspendUserModal" tabindex="-1" aria-labelledby="suspendUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="suspendUserModalLabel">Suspend User</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to suspend <strong id="suspendUserName"></strong>?</p>
+                <div class="mb-3">
+                    <label for="suspendReason" class="form-label">Reason for suspension</label>
+                    <textarea class="form-control" id="suspendReason" rows="3" placeholder="Enter reason for suspension..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmSuspendBtn">Suspend User</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    
+    <script>
+        let selectedUserId = '';
+
+        function suspendUser(userId, userName) {
+            selectedUserId = userId;
+            document.getElementById('suspendUserName').textContent = userName;
+            document.getElementById('suspendReason').value = '';
+            new bootstrap.Modal(document.getElementById('suspendUserModal')).show();
+        }
+
+        function reactivateUser(userId, userName) {
+            if (confirm(`Are you sure you want to reactivate ${userName}?`)) {
+                fetch('@Url.Action("ReactivateUser", "Admin")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                    },
+                    body: `id=${encodeURIComponent(userId)}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showAlert('success', data.message || 'User reactivated successfully');
+                        // Update the UI to reflect the change
+                        location.reload();
+                    } else {
+                        showAlert('danger', data.message || 'Failed to reactivate user');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showAlert('danger', 'An error occurred while reactivating the user');
+                });
+            }
+        }
+
+        function sendVerificationEmail(userId) {
+            // This would be implemented if email verification functionality exists
+            showAlert('info', 'Email verification functionality would be implemented here');
+        }
+
+        document.getElementById('confirmSuspendBtn').addEventListener('click', function() {
+            const reason = document.getElementById('suspendReason').value.trim();
+            if (!reason) {
+                showAlert('warning', 'Please provide a reason for suspension');
+                return;
+            }
+
+            fetch('@Url.Action("SuspendUser", "Admin")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                },
+                body: `id=${encodeURIComponent(selectedUserId)}&reason=${encodeURIComponent(reason)}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('success', data.message || 'User suspended successfully');
+                    bootstrap.Modal.getInstance(document.getElementById('suspendUserModal')).hide();
+                    // Update the UI to reflect the change
+                    location.reload();
+                } else {
+                    showAlert('danger', data.message || 'Failed to suspend user');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('danger', 'An error occurred while suspending the user');
+            });
+        });
+
+        function showAlert(type, message) {
+            const alertHtml = `
+                <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            `;
+            document.querySelector('.container-fluid').insertAdjacentHTML('afterbegin', alertHtml);
+        }
+
+        // Form validation enhancement
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const requiredFields = this.querySelectorAll('[required]');
+            let isValid = true;
+
+            requiredFields.forEach(field => {
+                if (!field.value.trim()) {
+                    isValid = false;
+                    field.classList.add('is-invalid');
+                } else {
+                    field.classList.remove('is-invalid');
+                }
+            });
+
+            if (!isValid) {
+                e.preventDefault();
+                showAlert('warning', 'Please fill in all required fields');
+            }
+        });
+
+        // Real-time validation
+        document.querySelectorAll('input, select, textarea').forEach(field => {
+            field.addEventListener('input', function() {
+                if (this.hasAttribute('required') && this.value.trim()) {
+                    this.classList.remove('is-invalid');
+                    this.classList.add('is-valid');
+                }
+            });
+        });
+    </script>
+}
+
+<style>
+    .page-title-box {
+        padding: 20px 0;
+    }
+
+    .card {
+        border: none;
+        box-shadow: 0 0.75rem 1.5rem rgba(18, 38, 63, 0.03);
+        margin-bottom: 24px;
+    }
+
+    .form-check-container {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .role-selection {
+        border: 1px solid #e9ecef;
+        border-radius: 0.375rem;
+        padding: 1rem;
+        background-color: #f8f9fa;
+    }
+
+    .role-selection .form-check {
+        margin-bottom: 0.5rem;
+    }
+
+    .form-check-input:checked {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+    }
+
+    .btn-group-actions {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .is-invalid {
+        border-color: #dc3545;
+    }
+
+    .is-valid {
+        border-color: #198754;
+    }
+
+    @@media (max-width: 768px) {
+        .btn-group-actions {
+            flex-direction: column;
+        }
+        
+        .btn-group-actions .btn {
+            width: 100%;
+        }
+    }
+</style>
