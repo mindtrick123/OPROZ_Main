@@ -729,5 +729,313 @@ namespace OPROZ_Main.Controllers
         {
             return await _context.Offers.AnyAsync(e => e.Id == id);
         }
+
+        // Services Management
+        public async Task<IActionResult> Services(string? search, int page = 1, bool? isActive = null, bool? isFeatured = null)
+        {
+            try
+            {
+                var query = _context.Services.AsQueryable();
+
+                if (!string.IsNullOrEmpty(search))
+                {
+                    query = query.Where(s => s.Name.Contains(search) || s.Description!.Contains(search) || s.ShortDescription!.Contains(search));
+                }
+
+                if (isActive.HasValue)
+                {
+                    query = query.Where(s => s.IsActive == isActive.Value);
+                }
+
+                if (isFeatured.HasValue)
+                {
+                    query = query.Where(s => s.IsFeatured == isFeatured.Value);
+                }
+
+                query = query.OrderBy(s => s.DisplayOrder).ThenByDescending(s => s.CreatedAt);
+
+                var pageSize = 10;
+                var totalCount = await query.CountAsync();
+                var services = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+
+                ViewBag.Search = search;
+                ViewBag.IsActive = isActive;
+                ViewBag.IsFeatured = isFeatured;
+                ViewBag.CurrentPage = page;
+                ViewBag.TotalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+                ViewBag.TotalCount = totalCount;
+
+                return View(services);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading services");
+                TempData["Error"] = "Error loading services. Please try again.";
+                return View(new List<Service>());
+            }
+        }
+
+        public async Task<IActionResult> ServiceDetails(int id)
+        {
+            try
+            {
+                var service = await _context.Services
+                    .Include(s => s.SubscriptionPlans)
+                    .Include(s => s.Offers)
+                    .FirstOrDefaultAsync(s => s.Id == id);
+
+                if (service == null)
+                    return NotFound();
+
+                return View(service);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading service details for {ServiceId}", id);
+                TempData["Error"] = "Error loading service details. Please try again.";
+                return RedirectToAction(nameof(Services));
+            }
+        }
+
+        public IActionResult CreateService()
+        {
+            return View(new Service { DisplayOrder = 0 });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateService(Service service)
+        {
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    service.CreatedAt = DateTime.UtcNow;
+                    _context.Services.Add(service);
+                    await _context.SaveChangesAsync();
+
+                    var currentUser = await _userManager.GetUserAsync(User);
+                    await _auditLogService.LogUserActionAsync(
+                        currentUser?.Id,
+                        currentUser?.Email,
+                        "Create Service",
+                        $"Created service: {service.Name}",
+                        Request.HttpContext.Connection.RemoteIpAddress?.ToString()
+                    );
+
+                    TempData["Success"] = "Service created successfully.";
+                    return RedirectToAction(nameof(Services));
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error creating service");
+                    TempData["Error"] = "Error creating service. Please try again.";
+                }
+            }
+
+            return View(service);
+        }
+
+        public async Task<IActionResult> EditService(int id)
+        {
+            try
+            {
+                var service = await _context.Services.FindAsync(id);
+                if (service == null)
+                    return NotFound();
+
+                return View(service);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading service for edit {ServiceId}", id);
+                TempData["Error"] = "Error loading service. Please try again.";
+                return RedirectToAction(nameof(Services));
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditService(int id, Service service)
+        {
+            if (id != service.Id)
+                return NotFound();
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    service.UpdatedAt = DateTime.UtcNow;
+                    _context.Update(service);
+                    await _context.SaveChangesAsync();
+
+                    var currentUser = await _userManager.GetUserAsync(User);
+                    await _auditLogService.LogUserActionAsync(
+                        currentUser?.Id,
+                        currentUser?.Email,
+                        "Update Service",
+                        $"Updated service: {service.Name}",
+                        Request.HttpContext.Connection.RemoteIpAddress?.ToString()
+                    );
+
+                    TempData["Success"] = "Service updated successfully.";
+                    return RedirectToAction(nameof(Services));
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!await ServiceExistsAsync(service.Id))
+                        return NotFound();
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error updating service {ServiceId}", id);
+                    TempData["Error"] = "Error updating service. Please try again.";
+                }
+            }
+
+            return View(service);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DeleteService(int id)
+        {
+            try
+            {
+                var service = await _context.Services.FindAsync(id);
+                if (service == null)
+                    return Json(new { success = false, message = "Service not found." });
+
+                // Check if service is being used
+                var hasSubscriptionPlans = await _context.SubscriptionPlans.AnyAsync(sp => sp.ServiceId == id);
+                var hasOffers = await _context.Offers.AnyAsync(o => o.ServiceId == id);
+
+                if (hasSubscriptionPlans || hasOffers)
+                {
+                    return Json(new { success = false, message = "Cannot delete service that has associated subscription plans or offers." });
+                }
+
+                _context.Services.Remove(service);
+                await _context.SaveChangesAsync();
+
+                var currentUser = await _userManager.GetUserAsync(User);
+                await _auditLogService.LogUserActionAsync(
+                    currentUser?.Id,
+                    currentUser?.Email,
+                    "Delete Service",
+                    $"Deleted service: {service.Name}",
+                    Request.HttpContext.Connection.RemoteIpAddress?.ToString()
+                );
+
+                return Json(new { success = true, message = "Service deleted successfully." });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting service {ServiceId}", id);
+                return Json(new { success = false, message = "Error deleting service. Please try again." });
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ToggleServiceStatus(int id)
+        {
+            try
+            {
+                var service = await _context.Services.FindAsync(id);
+                if (service == null)
+                    return Json(new { success = false, message = "Service not found." });
+
+                service.IsActive = !service.IsActive;
+                service.UpdatedAt = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
+
+                var currentUser = await _userManager.GetUserAsync(User);
+                await _auditLogService.LogUserActionAsync(
+                    currentUser?.Id,
+                    currentUser?.Email,
+                    "Toggle Service Status",
+                    $"Set service {service.Name} status to {(service.IsActive ? "Active" : "Inactive")}",
+                    Request.HttpContext.Connection.RemoteIpAddress?.ToString()
+                );
+
+                return Json(new { success = true, message = $"Service {(service.IsActive ? "activated" : "deactivated")} successfully.", isActive = service.IsActive });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error toggling service status {ServiceId}", id);
+                return Json(new { success = false, message = "Error updating service status. Please try again." });
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ToggleServiceFeatured(int id)
+        {
+            try
+            {
+                var service = await _context.Services.FindAsync(id);
+                if (service == null)
+                    return Json(new { success = false, message = "Service not found." });
+
+                service.IsFeatured = !service.IsFeatured;
+                service.UpdatedAt = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
+
+                var currentUser = await _userManager.GetUserAsync(User);
+                await _auditLogService.LogUserActionAsync(
+                    currentUser?.Id,
+                    currentUser?.Email,
+                    "Toggle Service Featured",
+                    $"Set service {service.Name} featured status to {(service.IsFeatured ? "Featured" : "Not Featured")}",
+                    Request.HttpContext.Connection.RemoteIpAddress?.ToString()
+                );
+
+                return Json(new { success = true, message = $"Service {(service.IsFeatured ? "marked as featured" : "unmarked as featured")} successfully.", isFeatured = service.IsFeatured });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error toggling service featured status {ServiceId}", id);
+                return Json(new { success = false, message = "Error updating service featured status. Please try again." });
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ReorderServices(int[] serviceIds)
+        {
+            try
+            {
+                for (int i = 0; i < serviceIds.Length; i++)
+                {
+                    var service = await _context.Services.FindAsync(serviceIds[i]);
+                    if (service != null)
+                    {
+                        service.DisplayOrder = i;
+                        service.UpdatedAt = DateTime.UtcNow;
+                    }
+                }
+
+                await _context.SaveChangesAsync();
+
+                var currentUser = await _userManager.GetUserAsync(User);
+                await _auditLogService.LogUserActionAsync(
+                    currentUser?.Id,
+                    currentUser?.Email,
+                    "Reorder Services",
+                    $"Reordered {serviceIds.Length} services",
+                    Request.HttpContext.Connection.RemoteIpAddress?.ToString()
+                );
+
+                return Json(new { success = true, message = "Services reordered successfully." });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error reordering services");
+                return Json(new { success = false, message = "Error reordering services. Please try again." });
+            }
+        }
+
+        private async Task<bool> ServiceExistsAsync(int id)
+        {
+            return await _context.Services.AnyAsync(e => e.Id == id);
+        }
     }
 }

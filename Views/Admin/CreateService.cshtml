@@ -1,0 +1,279 @@
+@model OPROZ_Main.Models.Service
+@{
+    ViewData["Title"] = "Create Service";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="page-title-box">
+                <h4 class="page-title">Create New Service</h4>
+                <div class="page-title-right">
+                    <ol class="breadcrumb m-0">
+                        <li class="breadcrumb-item"><a href="@Url.Action("Index", "Admin")">Admin</a></li>
+                        <li class="breadcrumb-item"><a href="@Url.Action("Services", "Admin")">Services</a></li>
+                        <li class="breadcrumb-item active">Create</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-cogs me-2"></i>Service Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="CreateService" method="post" id="createServiceForm">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger d-none"></div>
+
+                        <!-- Basic Information -->
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    <label asp-for="Name" class="form-label">Service Name <span class="text-danger">*</span></label>
+                                    <input asp-for="Name" class="form-control" placeholder="Enter service name">
+                                    <span asp-validation-for="Name" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label asp-for="IconClass" class="form-label">Icon Class</label>
+                                    <input asp-for="IconClass" class="form-control" placeholder="fas fa-cogs">
+                                    <span asp-validation-for="IconClass" class="text-danger"></span>
+                                    <small class="form-text text-muted">FontAwesome or similar icon class</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="ShortDescription" class="form-label">Short Description</label>
+                            <input asp-for="ShortDescription" class="form-control" placeholder="Brief description for cards and listings">
+                            <span asp-validation-for="ShortDescription" class="text-danger"></span>
+                            <small class="form-text text-muted">Maximum 500 characters</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Description" class="form-label">Full Description</label>
+                            <textarea asp-for="Description" class="form-control" rows="4" placeholder="Detailed description of the service"></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+
+                        <!-- Visual Configuration -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="ImageUrl" class="form-label">Image URL</label>
+                                    <input asp-for="ImageUrl" class="form-control" placeholder="https://example.com/image.jpg">
+                                    <span asp-validation-for="ImageUrl" class="text-danger"></span>
+                                    <small class="form-text text-muted">Service image for marketing materials</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="BasePrice" class="form-label">Base Price</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input asp-for="BasePrice" class="form-control" placeholder="0.00" min="0" step="0.01">
+                                    </div>
+                                    <span asp-validation-for="BasePrice" class="text-danger"></span>
+                                    <small class="form-text text-muted">Leave empty if pricing varies by plan</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Settings -->
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label asp-for="DisplayOrder" class="form-label">Display Order</label>
+                                    <input asp-for="DisplayOrder" class="form-control" type="number" min="0">
+                                    <span asp-validation-for="DisplayOrder" class="text-danger"></span>
+                                    <small class="form-text text-muted">Lower numbers appear first</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3 d-flex align-items-center">
+                                    <div class="form-check form-switch">
+                                        <input asp-for="IsActive" class="form-check-input" type="checkbox" checked>
+                                        <label asp-for="IsActive" class="form-check-label">
+                                            Active
+                                        </label>
+                                    </div>
+                                    <small class="form-text text-muted ms-3">Service is available for purchase</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3 d-flex align-items-center">
+                                    <div class="form-check form-switch">
+                                        <input asp-for="IsFeatured" class="form-check-input" type="checkbox">
+                                        <label asp-for="IsFeatured" class="form-check-label">
+                                            Featured
+                                        </label>
+                                    </div>
+                                    <small class="form-text text-muted ms-3">Highlight in listings</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Preview Card -->
+                        <div class="card bg-light mb-3" id="servicePreview" style="display: none;">
+                            <div class="card-header">
+                                <h6 class="card-title mb-0">
+                                    <i class="fas fa-eye me-2"></i>Service Preview
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-2 text-center">
+                                        <i id="previewIcon" class="fas fa-cogs fa-3x text-primary mb-2"></i>
+                                    </div>
+                                    <div class="col-md-10">
+                                        <h6 id="previewName" class="mb-2">Service Name</h6>
+                                        <p id="previewShortDesc" class="text-muted mb-2">Short description</p>
+                                        <p id="previewDescription" class="mb-2">Full description</p>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <span id="previewPrice" class="h5 text-success">$0.00</span>
+                                                <div id="previewBadges" class="mt-1"></div>
+                                            </div>
+                                            <button type="button" class="btn btn-primary btn-sm">
+                                                Learn More
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="d-flex justify-content-between">
+                            <a href="@Url.Action("Services")" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Create Service
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Update preview on input changes
+            const formInputs = document.querySelectorAll('#createServiceForm input, #createServiceForm textarea, #createServiceForm select');
+            formInputs.forEach(input => {
+                input.addEventListener('input', updatePreview);
+                input.addEventListener('change', updatePreview);
+            });
+
+            function updatePreview() {
+                const name = document.querySelector('input[name="Name"]').value;
+                const shortDesc = document.querySelector('input[name="ShortDescription"]').value;
+                const description = document.querySelector('textarea[name="Description"]').value;
+                const iconClass = document.querySelector('input[name="IconClass"]').value;
+                const basePrice = document.querySelector('input[name="BasePrice"]').value;
+                const isActive = document.querySelector('input[name="IsActive"]').checked;
+                const isFeatured = document.querySelector('input[name="IsFeatured"]').checked;
+
+                if (name || shortDesc || description) {
+                    document.getElementById('servicePreview').style.display = 'block';
+                    
+                    // Update preview content
+                    document.getElementById('previewName').textContent = name || 'Service Name';
+                    document.getElementById('previewShortDesc').textContent = shortDesc || 'Short description';
+                    document.getElementById('previewDescription').textContent = description || 'Full description';
+                    
+                    // Update icon
+                    const previewIcon = document.getElementById('previewIcon');
+                    previewIcon.className = (iconClass || 'fas fa-cogs') + ' fa-3x text-primary mb-2';
+                    
+                    // Update price
+                    const priceText = basePrice ? '$' + parseFloat(basePrice).toFixed(2) : 'Custom Pricing';
+                    document.getElementById('previewPrice').textContent = priceText;
+                    
+                    // Update badges
+                    const badgesContainer = document.getElementById('previewBadges');
+                    let badges = '';
+                    if (isFeatured) {
+                        badges += '<span class="badge bg-warning me-1">Featured</span>';
+                    }
+                    if (isActive) {
+                        badges += '<span class="badge bg-success me-1">Active</span>';
+                    } else {
+                        badges += '<span class="badge bg-secondary me-1">Inactive</span>';
+                    }
+                    badgesContainer.innerHTML = badges;
+                } else {
+                    document.getElementById('servicePreview').style.display = 'none';
+                }
+            }
+
+            // Initial call to set up the preview
+            updatePreview();
+
+            // Icon class suggestions
+            const iconInput = document.querySelector('input[name="IconClass"]');
+            iconInput.addEventListener('focus', function() {
+                if (!this.value) {
+                    showIconSuggestions(this);
+                }
+            });
+
+            function showIconSuggestions(input) {
+                const suggestions = [
+                    'fas fa-cogs',
+                    'fas fa-code',
+                    'fas fa-mobile-alt',
+                    'fas fa-cloud',
+                    'fas fa-chart-line',
+                    'fas fa-shield-alt',
+                    'fas fa-database',
+                    'fas fa-globe',
+                    'fas fa-rocket',
+                    'fas fa-palette'
+                ];
+                
+                // Create a simple dropdown (in a real app, you might use a proper autocomplete library)
+                const helpText = input.nextElementSibling.nextElementSibling;
+                helpText.innerHTML = 'Suggestions: ' + suggestions.map(icon => 
+                    `<span class="badge bg-light text-dark me-1 cursor-pointer" onclick="selectIcon('${icon}')">${icon}</span>`
+                ).join('');
+            }
+        });
+
+        function selectIcon(iconClass) {
+            document.querySelector('input[name="IconClass"]').value = iconClass;
+            document.querySelector('input[name="IconClass"]').dispatchEvent(new Event('input'));
+        }
+
+        // Form validation
+        document.getElementById('createServiceForm').addEventListener('submit', function(e) {
+            const name = document.querySelector('input[name="Name"]').value.trim();
+            if (!name) {
+                e.preventDefault();
+                alert('Service name is required.');
+                return false;
+            }
+            
+            const shortDesc = document.querySelector('input[name="ShortDescription"]').value;
+            if (shortDesc && shortDesc.length > 500) {
+                e.preventDefault();
+                alert('Short description must be 500 characters or less.');
+                return false;
+            }
+        });
+    </script>
+}

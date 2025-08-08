@@ -1,0 +1,512 @@
+@model OPROZ_Main.Models.Service
+@{
+    ViewData["Title"] = "Service Details";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="page-title-box">
+                <h4 class="page-title">Service Details</h4>
+                <div class="page-title-right">
+                    <ol class="breadcrumb m-0">
+                        <li class="breadcrumb-item"><a href="@Url.Action("Index", "Admin")">Admin</a></li>
+                        <li class="breadcrumb-item"><a href="@Url.Action("Services", "Admin")">Services</a></li>
+                        <li class="breadcrumb-item active">Details</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Main Service Information -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">
+                            @if (!string.IsNullOrEmpty(Model.IconClass))
+                            {
+                                <i class="@Model.IconClass me-2"></i>
+                            }
+                            @Model.Name
+                        </h5>
+                        <div>
+                            @if (Model.IsActive)
+                            {
+                                <span class="badge bg-success">Active</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Inactive</span>
+                            }
+                            @if (Model.IsFeatured)
+                            {
+                                <span class="badge bg-warning">Featured</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    @if (!string.IsNullOrEmpty(Model.ShortDescription))
+                    {
+                        <p class="text-muted mb-3">@Model.ShortDescription</p>
+                    }
+
+                    @if (!string.IsNullOrEmpty(Model.Description))
+                    {
+                        <div class="mb-4">
+                            <h6 class="fw-bold">Description</h6>
+                            <p>@Model.Description</p>
+                        </div>
+                    }
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            @if (Model.BasePrice.HasValue)
+                            {
+                                <h6 class="fw-bold">Base Price</h6>
+                                <p class="mb-3">
+                                    <span class="h5 text-success">$@Model.BasePrice.Value.ToString("N2")</span>
+                                </p>
+                            }
+
+                            <h6 class="fw-bold">Display Order</h6>
+                            <p class="mb-3">@Model.DisplayOrder</p>
+
+                            @if (!string.IsNullOrEmpty(Model.ImageUrl))
+                            {
+                                <h6 class="fw-bold">Service Image</h6>
+                                <div class="mb-3">
+                                    <img src="@Model.ImageUrl" alt="@Model.Name" class="img-thumbnail" style="max-width: 200px; max-height: 150px;">
+                                    <br>
+                                    <small class="text-muted">@Model.ImageUrl</small>
+                                </div>
+                            }
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="fw-bold">Statistics</h6>
+                            <div class="row text-center mb-3">
+                                <div class="col-6">
+                                    <div class="border-end">
+                                        <h4 class="text-primary mb-1">@Model.SubscriptionPlans.Count</h4>
+                                        <p class="text-muted mb-0">Subscription Plans</p>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <h4 class="text-warning mb-1">@Model.Offers.Count</h4>
+                                    <p class="text-muted mb-0">Active Offers</p>
+                                </div>
+                            </div>
+
+                            <h6 class="fw-bold">Created</h6>
+                            <p class="mb-1">@Model.CreatedAt.ToString("MMMM dd, yyyy 'at' HH:mm")</p>
+                            
+                            @if (Model.UpdatedAt.HasValue)
+                            {
+                                <h6 class="fw-bold">Last Updated</h6>
+                                <p class="mb-1">@Model.UpdatedAt.Value.ToString("MMMM dd, yyyy 'at' HH:mm")</p>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Subscription Plans -->
+            @if (Model.SubscriptionPlans != null && Model.SubscriptionPlans.Any())
+            {
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-credit-card me-2"></i>Subscription Plans (@Model.SubscriptionPlans.Count)
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Plan Name</th>
+                                        <th>Type</th>
+                                        <th>Duration</th>
+                                        <th>Price</th>
+                                        <th>Max Users</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var plan in Model.SubscriptionPlans.OrderBy(p => p.Type).ThenBy(p => p.Duration))
+                                    {
+                                        <tr>
+                                            <td>
+                                                <strong>@plan.Name</strong>
+                                                @if (plan.IsPopular)
+                                                {
+                                                    <span class="badge bg-warning ms-1">Popular</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-info">@plan.Type</span>
+                                            </td>
+                                            <td>@plan.Duration</td>
+                                            <td class="text-success fw-bold">$@plan.Price.ToString("N2")</td>
+                                            <td>@plan.MaxUsers</td>
+                                            <td>
+                                                @if (plan.IsActive)
+                                                {
+                                                    <span class="badge bg-success">Active</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-secondary">Inactive</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                <a href="@Url.Action("SubscriptionPlanDetails", new { id = plan.Id })" class="btn btn-sm btn-outline-info">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <a href="@Url.Action("EditSubscriptionPlan", new { id = plan.Id })" class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <!-- Offers -->
+            @if (Model.Offers != null && Model.Offers.Any())
+            {
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-tags me-2"></i>Related Offers (@Model.Offers.Count)
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Offer Name</th>
+                                        <th>Code</th>
+                                        <th>Type</th>
+                                        <th>Value</th>
+                                        <th>Valid Until</th>
+                                        <th>Usage</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var offer in Model.Offers.OrderByDescending(o => o.CreatedAt))
+                                    {
+                                        <tr>
+                                            <td><strong>@offer.Name</strong></td>
+                                            <td><span class="badge bg-info">@offer.Code</span></td>
+                                            <td>@offer.Type</td>
+                                            <td>
+                                                @switch (offer.Type)
+                                                {
+                                                    case OPROZ_Main.Models.OfferType.Percentage:
+                                                        <span>@offer.Value%</span>
+                                                        break;
+                                                    case OPROZ_Main.Models.OfferType.FixedAmount:
+                                                        <span>$@offer.Value.ToString("N2")</span>
+                                                        break;
+                                                    case OPROZ_Main.Models.OfferType.FreeMonth:
+                                                        <span>@offer.Value month(s)</span>
+                                                        break;
+                                                }
+                                            </td>
+                                            <td>@offer.EndDate.ToString("MMM dd, yyyy")</td>
+                                            <td>
+                                                @if (offer.MaxUsageCount.HasValue)
+                                                {
+                                                    <span>@offer.UsedCount / @offer.MaxUsageCount</span>
+                                                }
+                                                else
+                                                {
+                                                    <span>@offer.UsedCount / ∞</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                @if (offer.IsActive && offer.EndDate > DateTime.Now)
+                                                {
+                                                    <span class="badge bg-success">Active</span>
+                                                }
+                                                else if (offer.EndDate < DateTime.Now)
+                                                {
+                                                    <span class="badge bg-danger">Expired</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-secondary">Inactive</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                <a href="@Url.Action("OfferDetails", new { id = offer.Id })" class="btn btn-sm btn-outline-info">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <a href="@Url.Action("EditOffer", new { id = offer.Id })" class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="col-lg-4">
+            <!-- Quick Actions -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-cogs me-2"></i>Quick Actions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="@Url.Action("EditService", new { id = Model.Id })" class="btn btn-primary">
+                            <i class="fas fa-edit me-2"></i>Edit Service
+                        </a>
+                        
+                        <button type="button" class="btn btn-@(Model.IsActive ? "warning" : "success")" 
+                                onclick="toggleServiceStatus(@Model.Id, @Model.IsActive.ToString().ToLower())">
+                            <i class="fas fa-@(Model.IsActive ? "pause" : "play") me-2"></i>@(Model.IsActive ? "Deactivate" : "Activate")
+                        </button>
+                        
+                        <button type="button" class="btn btn-@(Model.IsFeatured ? "outline-warning" : "warning")" 
+                                onclick="toggleServiceFeatured(@Model.Id, @Model.IsFeatured.ToString().ToLower())">
+                            <i class="fas fa-star me-2"></i>@(Model.IsFeatured ? "Unfeature" : "Feature")
+                        </button>
+                        
+                        <hr>
+                        
+                        <a href="@Url.Action("CreateSubscriptionPlan", new { serviceId = Model.Id })" class="btn btn-outline-info">
+                            <i class="fas fa-plus me-2"></i>Add Subscription Plan
+                        </a>
+                        
+                        <a href="@Url.Action("CreateOffer", new { serviceId = Model.Id })" class="btn btn-outline-warning">
+                            <i class="fas fa-tag me-2"></i>Create Offer
+                        </a>
+                        
+                        <hr>
+                        
+                        <button type="button" class="btn btn-outline-danger" onclick="deleteService(@Model.Id, '@Model.Name')">
+                            <i class="fas fa-trash me-2"></i>Delete Service
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Service Preview -->
+            @if (!string.IsNullOrEmpty(Model.ShortDescription) || !string.IsNullOrEmpty(Model.Description))
+            {
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-eye me-2"></i>Public Preview
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="text-center mb-3">
+                            @if (!string.IsNullOrEmpty(Model.IconClass))
+                            {
+                                <i class="@Model.IconClass fa-3x text-primary mb-2"></i>
+                            }
+                            <h6>@Model.Name</h6>
+                            @if (!string.IsNullOrEmpty(Model.ShortDescription))
+                            {
+                                <p class="text-muted">@Model.ShortDescription</p>
+                            }
+                            @if (Model.BasePrice.HasValue)
+                            {
+                                <p class="h5 text-success">Starting at $@Model.BasePrice.Value.ToString("N2")</p>
+                            }
+                            <div class="mt-2">
+                                @if (Model.IsFeatured)
+                                {
+                                    <span class="badge bg-warning me-1">Featured</span>
+                                }
+                                @if (Model.IsActive)
+                                {
+                                    <span class="badge bg-success">Available</span>
+                                }
+                            </div>
+                        </div>
+                        <button class="btn btn-primary w-100" disabled>
+                            Learn More
+                        </button>
+                    </div>
+                </div>
+            }
+
+            <!-- Back to List -->
+            <div class="mt-3">
+                <a href="@Url.Action("Services")" class="btn btn-outline-secondary w-100">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Services List
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete the service "<span id="deleteServiceName"></span>"?</p>
+                @if (Model.SubscriptionPlans.Any() || Model.Offers.Any())
+                {
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Warning:</strong> This service has @Model.SubscriptionPlans.Count subscription plan(s) and @Model.Offers.Count offer(s). Deleting it may affect related data.
+                    </div>
+                }
+                <p class="text-danger"><small>This action cannot be undone.</small></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let deleteServiceId = 0;
+
+        function deleteService(id, name) {
+            deleteServiceId = id;
+            document.getElementById('deleteServiceName').textContent = name;
+            new bootstrap.Modal(document.getElementById('deleteModal')).show();
+        }
+
+        document.getElementById('confirmDeleteBtn').addEventListener('click', function () {
+            if (deleteServiceId > 0) {
+                fetch('@Url.Action("DeleteService")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                    },
+                    body: JSON.stringify({ id: deleteServiceId })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast('success', data.message);
+                        setTimeout(() => {
+                            window.location.href = '@Url.Action("Services")';
+                        }, 1500);
+                    } else {
+                        showToast('error', data.message);
+                    }
+                })
+                .catch(error => {
+                    showToast('error', 'An error occurred while deleting the service.');
+                });
+
+                bootstrap.Modal.getInstance(document.getElementById('deleteModal')).hide();
+            }
+        });
+
+        function toggleServiceStatus(id, currentStatus) {
+            fetch('@Url.Action("ToggleServiceStatus")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                },
+                body: JSON.stringify({ id: id })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('success', data.message);
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1500);
+                } else {
+                    showToast('error', data.message);
+                }
+            })
+            .catch(error => {
+                showToast('error', 'An error occurred while updating the service status.');
+            });
+        }
+
+        function toggleServiceFeatured(id, currentFeatured) {
+            fetch('@Url.Action("ToggleServiceFeatured")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                },
+                body: JSON.stringify({ id: id })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('success', data.message);
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1500);
+                } else {
+                    showToast('error', data.message);
+                }
+            })
+            .catch(error => {
+                showToast('error', 'An error occurred while updating the service featured status.');
+            });
+        }
+
+        function showToast(type, message) {
+            const toastHtml = `
+                <div class="toast align-items-center text-white bg-${type === 'success' ? 'success' : 'danger'} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex">
+                        <div class="toast-body">${message}</div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                </div>
+            `;
+            
+            let toastContainer = document.getElementById('toast-container');
+            if (!toastContainer) {
+                toastContainer = document.createElement('div');
+                toastContainer.id = 'toast-container';
+                toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
+                toastContainer.style.zIndex = '1055';
+                document.body.appendChild(toastContainer);
+            }
+            
+            toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+            const toastElement = toastContainer.lastElementChild;
+            const toast = new bootstrap.Toast(toastElement);
+            toast.show();
+            
+            toastElement.addEventListener('hidden.bs.toast', () => {
+                toastElement.remove();
+            });
+        }
+    </script>
+}

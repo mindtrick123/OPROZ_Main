@@ -38,8 +38,16 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3MvQWRtaW4vQ3JlYXRlT2ZmZXIuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
+[/home/runner/work/OPROZ_Main/OPROZ_Main/Views/Admin/CreateService.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvQWRtaW4vQ3JlYXRlU2VydmljZS5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
 [/home/runner/work/OPROZ_Main/OPROZ_Main/Views/Admin/EditOffer.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3MvQWRtaW4vRWRpdE9mZmVyLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/runner/work/OPROZ_Main/OPROZ_Main/Views/Admin/EditService.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvQWRtaW4vRWRpdFNlcnZpY2UuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
 [/home/runner/work/OPROZ_Main/OPROZ_Main/Views/Admin/EditUser.cshtml]
@@ -64,6 +72,14 @@ build_metadata.AdditionalFiles.CssScope =
 
 [/home/runner/work/OPROZ_Main/OPROZ_Main/Views/Admin/ResetPassword.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3MvQWRtaW4vUmVzZXRQYXNzd29yZC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/runner/work/OPROZ_Main/OPROZ_Main/Views/Admin/ServiceDetails.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvQWRtaW4vU2VydmljZURldGFpbHMuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/runner/work/OPROZ_Main/OPROZ_Main/Views/Admin/Services.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvQWRtaW4vU2VydmljZXMuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
 [/home/runner/work/OPROZ_Main/OPROZ_Main/Views/Admin/UserDetails.cshtml]
