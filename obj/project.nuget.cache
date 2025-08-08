@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "wAYJVMPcI9q8uxu/14tybWKSH5P/QUiX19DdeDT5nzUHgrUdnbYUYKNr4QVaSOS3EwTxhrYH1TcQ1VNazOtEYA==",
+  "dgSpecHash": "qUdbRfXjQ8SCDyjt6g7juPvVc8LN1PE34Fi7pSE3HfuiR5CTGF/bSUaboq7S+7myowQ5o+kYJl73zJPUh+8Tfg==",
   "success": true,
   "projectFilePath": "/home/runner/work/OPROZ_Main/OPROZ_Main/OPROZ_Main.csproj",
   "expectedPackageFiles": [
@@ -76,6 +76,7 @@
     "/home/runner/.nuget/packages/mimekit/4.3.0/mimekit.4.3.0.nupkg.sha512",
     "/home/runner/.nuget/packages/mono.texttemplating/2.2.1/mono.texttemplating.2.2.1.nupkg.sha512",
     "/home/runner/.nuget/packages/newtonsoft.json/11.0.2/newtonsoft.json.11.0.2.nupkg.sha512",
+    "/home/runner/.nuget/packages/razorpay/3.0.0/razorpay.3.0.0.nupkg.sha512",
     "/home/runner/.nuget/packages/sqlitepclraw.bundle_e_sqlite3/2.1.6/sqlitepclraw.bundle_e_sqlite3.2.1.6.nupkg.sha512",
     "/home/runner/.nuget/packages/sqlitepclraw.core/2.1.6/sqlitepclraw.core.2.1.6.nupkg.sha512",
     "/home/runner/.nuget/packages/sqlitepclraw.lib.e_sqlite3/2.1.6/sqlitepclraw.lib.e_sqlite3.2.1.6.nupkg.sha512",
@@ -119,6 +120,16 @@
       "warningLevel": 1,
       "message": "Package 'MimeKit' 4.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-gmc6-fwg3-75m5",
       "libraryId": "MimeKit",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1701",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Package 'Razorpay 3.0.0' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' instead of the project target framework 'net8.0'. This package may not be fully compatible with your project.",
+      "libraryId": "Razorpay",
       "targetGraphs": [
         "net8.0"
       ]

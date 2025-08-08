@@ -89,6 +89,7 @@ namespace OPROZ_Main
             services.AddScoped<IReportingService, ReportingService>();
             services.AddScoped<IUserManagementService, UserManagementService>();
             services.AddScoped<IAuditLogService, AuditLogService>();
+            services.AddScoped<IRazorpayService, RazorpayService>();
 
             // Add MVC
             services.AddControllersWithViews(options =>

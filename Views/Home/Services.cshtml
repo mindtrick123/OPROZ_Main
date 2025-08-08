@@ -29,7 +29,7 @@
                             <p class="card-text">@service.Description</p>
                             @if (service.BasePrice.HasValue)
                             {
-                                <p class="text-primary fw-bold">Starting at $@service.BasePrice.Value.ToString("N0")</p>
+                                <p class="text-primary fw-bold">Starting at ₹@service.BasePrice.Value.ToString("N0")</p>
                             }
                         </div>
                         <div class="card-footer bg-transparent">
@@ -65,7 +65,7 @@
                                                     <div class="card-body text-center">
                                                         <h6 class="card-title">@plan.Type</h6>
                                                         <div class="mb-3">
-                                                            <span class="h4 fw-bold text-primary">$@plan.Price.ToString("N0")</span>
+                                                            <span class="h4 fw-bold text-primary">₹@plan.Price.ToString("N0")</span>
                                                             <span class="text-muted">/@plan.Duration.ToString().ToLower()</span>
                                                         </div>
                                                         <ul class="list-unstyled">
@@ -74,7 +74,14 @@
                                                         </ul>
                                                     </div>
                                                     <div class="card-footer">
-                                                        <a href="@Url.Action("Register", "Account")" class="btn btn-outline-primary w-100">Choose Plan</a>
+                                                        @if (User.Identity?.IsAuthenticated == true)
+                                                        {
+                                                            <a href="@Url.Action("Subscribe", "Payment", new { planId = plan.Id })" class="btn btn-primary w-100">Subscribe Now</a>
+                                                        }
+                                                        else
+                                                        {
+                                                            <a href="@Url.Action("Register", "Account")" class="btn btn-outline-primary w-100">Sign Up to Subscribe</a>
+                                                        }
                                                     </div>
                                                 </div>
                                             </div>
