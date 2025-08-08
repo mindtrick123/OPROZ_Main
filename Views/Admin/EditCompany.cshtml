@@ -1,0 +1,472 @@
+@model Company
+@{
+    ViewData["Title"] = "Edit Company";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<!-- Page Title -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="page-title">Edit Company</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="@Url.Action("Index", "Admin")">Admin</a></li>
+                <li class="breadcrumb-item"><a href="@Url.Action("Companies")">Companies</a></li>
+                <li class="breadcrumb-item"><a href="@Url.Action("CompanyDetails", new { id = Model.Id })">@Model.Name</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Edit</li>
+            </ol>
+        </nav>
+    </div>
+    <div>
+        <a href="@Url.Action("CompanyDetails", new { id = Model.Id })" class="btn btn-outline-info">
+            <i class="bi bi-eye me-2"></i>View Details
+        </a>
+        <a href="@Url.Action("Companies")" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Back to List
+        </a>
+    </div>
+</div>
+
+<!-- Status Alert -->
+@if (!Model.IsActive)
+{
+    <div class="alert alert-warning" role="alert">
+        <i class="bi bi-exclamation-triangle me-2"></i>
+        <strong>Note:</strong> This company is currently inactive. Consider activating it after making updates.
+    </div>
+}
+
+<!-- Form Card -->
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-building me-2"></i>Edit Company Information
+                </h5>
+                <span class="badge bg-@(Model.IsActive ? "success" : "danger")">
+                    @(Model.IsActive ? "Active" : "Inactive")
+                </span>
+            </div>
+            <div class="card-body">
+                <form asp-action="EditCompany" method="post" id="companyForm" novalidate>
+                    <input asp-for="Id" type="hidden" />
+                    <input asp-for="CreatedAt" type="hidden" />
+                    
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger" style="display: none;"></div>
+
+                    <!-- Basic Information Section -->
+                    <div class="mb-4">
+                        <h6 class="text-primary border-bottom pb-2 mb-3">
+                            <i class="bi bi-info-circle me-1"></i>Basic Information
+                        </h6>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="Name" class="form-label required">Company Name</label>
+                                    <input asp-for="Name" class="form-control" placeholder="Enter company name" />
+                                    <span asp-validation-for="Name" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="Website" class="form-label">Website</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-globe"></i></span>
+                                        <input asp-for="Website" class="form-control" placeholder="https://example.com" />
+                                        @if (!string.IsNullOrEmpty(Model.Website))
+                                        {
+                                            <a href="@Model.Website" target="_blank" class="btn btn-outline-secondary" title="Visit Website">
+                                                <i class="bi bi-box-arrow-up-right"></i>
+                                            </a>
+                                        }
+                                    </div>
+                                    <span asp-validation-for="Website" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Description" class="form-label">Description</label>
+                            <textarea asp-for="Description" class="form-control" rows="3" 
+                                      placeholder="Brief description of the company..."></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <!-- Contact Information Section -->
+                    <div class="mb-4">
+                        <h6 class="text-primary border-bottom pb-2 mb-3">
+                            <i class="bi bi-telephone me-1"></i>Contact Information
+                        </h6>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="Phone" class="form-label">Phone Number</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-telephone"></i></span>
+                                        <input asp-for="Phone" class="form-control" placeholder="+1 (555) 123-4567" />
+                                    </div>
+                                    <span asp-validation-for="Phone" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="PostalCode" class="form-label">Postal Code</label>
+                                    <input asp-for="PostalCode" class="form-control" placeholder="Enter postal code" />
+                                    <span asp-validation-for="PostalCode" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Address" class="form-label">Street Address</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
+                                <input asp-for="Address" class="form-control" placeholder="Enter street address" />
+                            </div>
+                            <span asp-validation-for="Address" class="text-danger"></span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label asp-for="City" class="form-label">City</label>
+                                    <input asp-for="City" class="form-control" placeholder="Enter city" />
+                                    <span asp-validation-for="City" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label asp-for="State" class="form-label">State/Province</label>
+                                    <input asp-for="State" class="form-control" placeholder="Enter state" />
+                                    <span asp-validation-for="State" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label asp-for="Country" class="form-label">Country</label>
+                                    <select asp-for="Country" class="form-select">
+                                        <option value="">Select country</option>
+                                        <option value="United States">United States</option>
+                                        <option value="Canada">Canada</option>
+                                        <option value="United Kingdom">United Kingdom</option>
+                                        <option value="Australia">Australia</option>
+                                        <option value="Germany">Germany</option>
+                                        <option value="France">France</option>
+                                        <option value="Japan">Japan</option>
+                                        <option value="India">India</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                    <span asp-validation-for="Country" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Settings Section -->
+                    <div class="mb-4">
+                        <h6 class="text-primary border-bottom pb-2 mb-3">
+                            <i class="bi bi-gear me-1"></i>Settings
+                        </h6>
+                        
+                        <div class="form-check">
+                            <input asp-for="IsActive" class="form-check-input" type="checkbox" />
+                            <label class="form-check-label" asp-for="IsActive">
+                                Active Company
+                            </label>
+                            <div class="form-text">Inactive companies will have limited access to the platform</div>
+                        </div>
+
+                        @if (Model.Users?.Any() == true && Model.IsActive)
+                        {
+                            <div class="alert alert-warning mt-3">
+                                <i class="bi bi-exclamation-triangle me-2"></i>
+                                <strong>Warning:</strong> Deactivating this company will affect @Model.Users.Count user(s) currently assigned to it.
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="d-flex gap-2 justify-content-end">
+                        <a href="@Url.Action("CompanyDetails", new { id = Model.Id })" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-circle me-2"></i>Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary" id="submitBtn">
+                            <i class="bi bi-check-circle me-2"></i>Update Company
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <!-- Company Stats -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-graph-up me-2"></i>Company Overview
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6 border-end">
+                        <h4 class="text-primary mb-0">@(Model.Users?.Count ?? 0)</h4>
+                        <small class="text-muted">Users</small>
+                    </div>
+                    <div class="col-6">
+                        @{
+                            var totalRevenue = Model.PaymentHistories?.Where(p => p.Status == PaymentStatus.Success).Sum(p => p.FinalAmount) ?? 0;
+                        }
+                        <h4 class="text-success mb-0">$@totalRevenue.ToString("N0")</h4>
+                        <small class="text-muted">Revenue</small>
+                    </div>
+                </div>
+                <hr>
+                <div class="small text-muted">
+                    <div class="d-flex justify-content-between">
+                        <span>Created:</span>
+                        <span>@Model.CreatedAt.ToString("MMM dd, yyyy")</span>
+                    </div>
+                    @if (Model.UpdatedAt.HasValue)
+                    {
+                        <div class="d-flex justify-content-between">
+                            <span>Updated:</span>
+                            <span>@Model.UpdatedAt.Value.ToString("MMM dd, yyyy")</span>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-lightning me-2"></i>Quick Actions
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="@Url.Action("CompanyDetails", new { id = Model.Id })" class="btn btn-outline-info btn-sm">
+                        <i class="bi bi-eye me-2"></i>View Details
+                    </a>
+                    @if (Model.Users?.Any() == true)
+                    {
+                        <a href="@Url.Action("Users", new { companyId = Model.Id })" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-people me-2"></i>Manage Users
+                        </a>
+                    }
+                    @if (Model.PaymentHistories?.Any() == true)
+                    {
+                        <a href="@Url.Action("PaymentHistory", new { companyId = Model.Id })" class="btn btn-outline-success btn-sm">
+                            <i class="bi bi-receipt me-2"></i>Payment History
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Help Information -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-lightbulb me-2"></i>Update Guidelines
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <h6><i class="bi bi-shield-check text-success me-1"></i>Safe Updates</h6>
+                    <p class="small text-muted">You can safely update company information, contact details, and description without affecting users.</p>
+                </div>
+                
+                <div class="mb-3">
+                    <h6><i class="bi bi-exclamation-triangle text-warning me-1"></i>Status Changes</h6>
+                    <p class="small text-muted">Changing company status will affect all users assigned to this company.</p>
+                </div>
+
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i>
+                    <small>Changes are applied immediately and will be visible to all users.</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        $(document).ready(function() {
+            // Form validation setup
+            $('#companyForm').validate({
+                rules: {
+                    Name: {
+                        required: true,
+                        minlength: 2,
+                        maxlength: 200
+                    },
+                    Website: {
+                        url: true,
+                        maxlength: 200
+                    },
+                    Description: {
+                        maxlength: 500
+                    },
+                    Phone: {
+                        maxlength: 20
+                    },
+                    Address: {
+                        maxlength: 200
+                    },
+                    City: {
+                        maxlength: 100
+                    },
+                    State: {
+                        maxlength: 100
+                    },
+                    PostalCode: {
+                        maxlength: 20
+                    },
+                    Country: {
+                        maxlength: 100
+                    }
+                },
+                messages: {
+                    Name: {
+                        required: "Company name is required",
+                        minlength: "Company name must be at least 2 characters",
+                        maxlength: "Company name cannot exceed 200 characters"
+                    },
+                    Website: {
+                        url: "Please enter a valid URL (e.g., https://example.com)"
+                    }
+                },
+                errorElement: "span",
+                errorClass: "text-danger",
+                highlight: function(element) {
+                    $(element).addClass("is-invalid");
+                },
+                unhighlight: function(element) {
+                    $(element).removeClass("is-invalid");
+                }
+            });
+
+            // Auto-format website URL
+            $('#Website').on('blur', function() {
+                let url = $(this).val().trim();
+                if (url && !url.match(/^https?:\/\//)) {
+                    $(this).val('https://' + url);
+                }
+            });
+
+            // Phone number formatting
+            $('#Phone').on('input', function() {
+                let value = $(this).val().replace(/\D/g, '');
+                if (value.length >= 10) {
+                    let formatted = value.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
+                    if (value.length > 10) {
+                        formatted = '+' + value.substr(0, value.length - 10) + ' ' + formatted;
+                    }
+                    $(this).val(formatted);
+                }
+            });
+
+            // Form submission handling
+            $('#companyForm').on('submit', function(e) {
+                if ($(this).valid()) {
+                    $('#submitBtn').prop('disabled', true)
+                                   .html('<span class="spinner-border spinner-border-sm me-2"></span>Updating...');
+                    showLoading();
+                }
+            });
+
+            // Status change warning
+            $('#IsActive').on('change', function() {
+                const userCount = @(Model.Users?.Count ?? 0);
+                const isChecked = $(this).is(':checked');
+                
+                if (!isChecked && userCount > 0) {
+                    if (!confirm(`This will deactivate the company and affect ${userCount} user(s). Are you sure?`)) {
+                        $(this).prop('checked', true);
+                    }
+                }
+            });
+
+            // Track changes
+            let originalData = $('#companyForm').serialize();
+            
+            $(window).on('beforeunload', function() {
+                if ($('#companyForm').serialize() !== originalData) {
+                    return 'You have unsaved changes. Are you sure you want to leave?';
+                }
+            });
+
+            // Remove beforeunload when form is submitted
+            $('#companyForm').on('submit', function() {
+                $(window).off('beforeunload');
+            });
+        });
+
+        // Character counter for description
+        $('#Description').on('input', function() {
+            const maxLength = 500;
+            const currentLength = $(this).val().length;
+            const remaining = maxLength - currentLength;
+            
+            if (!$('#char-counter').length) {
+                $(this).after(`<small id="char-counter" class="form-text text-muted"></small>`);
+            }
+            
+            $('#char-counter').text(`${remaining} characters remaining`)
+                              .toggleClass('text-danger', remaining < 50)
+                              .toggleClass('text-warning', remaining < 100 && remaining >= 50);
+        });
+
+        // Initialize character counter
+        $('#Description').trigger('input');
+    </script>
+}
+
+<style>
+    .required::after {
+        content: " *";
+        color: #dc3545;
+    }
+    
+    .form-check-input:checked {
+        background-color: #198754;
+        border-color: #198754;
+    }
+    
+    .is-valid {
+        border-color: #198754;
+    }
+    
+    .is-invalid {
+        border-color: #dc3545;
+    }
+    
+    .input-group-text {
+        background-color: #f8f9fa;
+        border-color: #ced4da;
+    }
+    
+    .alert-info {
+        background-color: #cff4fc;
+        border-color: #b6effb;
+        color: #055160;
+    }
+    
+    .btn-outline-info:hover,
+    .btn-outline-primary:hover,
+    .btn-outline-success:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+</style>

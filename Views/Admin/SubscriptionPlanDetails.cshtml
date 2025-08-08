@@ -1,0 +1,468 @@
+@model SubscriptionPlan
+@{
+    ViewData["Title"] = "Subscription Plan Details";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<!-- Page Title -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="page-title">Subscription Plan Details</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="@Url.Action("Index", "Admin")">Admin</a></li>
+                <li class="breadcrumb-item"><a href="@Url.Action("SubscriptionPlans")">Subscription Plans</a></li>
+                <li class="breadcrumb-item active" aria-current="page">@Model.Name</li>
+            </ol>
+        </nav>
+    </div>
+    <div>
+        <a href="@Url.Action("EditSubscriptionPlan", new { id = Model.Id })" class="btn btn-primary">
+            <i class="bi bi-pencil me-2"></i>Edit Plan
+        </a>
+        <a href="@Url.Action("SubscriptionPlans")" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Back to List
+        </a>
+    </div>
+</div>
+
+<!-- Plan Status Alert -->
+@if (!Model.IsActive)
+{
+    <div class="alert alert-warning" role="alert">
+        <i class="bi bi-exclamation-triangle me-2"></i>
+        <strong>Inactive Plan:</strong> This subscription plan is currently inactive and not available for new subscriptions.
+    </div>
+}
+
+<div class="row">
+    <!-- Plan Information -->
+    <div class="col-lg-8">
+        <!-- Basic Information Card -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-credit-card me-2"></i>Plan Information
+                </h5>
+                <div>
+                    <span class="badge bg-@(Model.IsActive ? "success" : "danger")">
+                        @(Model.IsActive ? "Active" : "Inactive")
+                    </span>
+                    @if (Model.IsPopular)
+                    {
+                        <span class="badge bg-warning text-dark ms-1">Popular</span>
+                    }
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Plan Name</label>
+                            <p class="form-control-plaintext">@Model.Name</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Service</label>
+                            <p class="form-control-plaintext">
+                                <a href="@Url.Action("ServiceDetails", new { id = Model.Service.Id })" class="text-decoration-none">
+                                    @Model.Service.Name
+                                </a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Plan Type</label>
+                            <p class="form-control-plaintext">
+                                <span class="badge bg-info fs-6">@Model.Type</span>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Duration</label>
+                            <p class="form-control-plaintext">
+                                <span class="badge bg-secondary fs-6">@Model.Duration</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                @if (!string.IsNullOrEmpty(Model.Description))
+                {
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Description</label>
+                        <p class="form-control-plaintext">@Model.Description</p>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Pricing & Limits Card -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-currency-dollar me-2"></i>Pricing & Limits
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="text-center p-3 bg-light rounded">
+                            <h3 class="text-success mb-0">${{Model.Price.ToString("N2")}}</h3>
+                            <small class="text-muted">per @Model.Duration.ToString().ToLower()</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center p-3 bg-light rounded">
+                            <h4 class="text-primary mb-0">@Model.MaxUsers</h4>
+                            <small class="text-muted">Max Users</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center p-3 bg-light rounded">
+                            <h4 class="text-info mb-0">@(Model.MaxStorage / 1024)GB</h4>
+                            <small class="text-muted">Storage Limit</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Features Card -->
+        @if (!string.IsNullOrEmpty(Model.Features))
+        {
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-list-check me-2"></i>Plan Features
+                    </h5>
+                </div>
+                <div class="card-body">
+                    @{
+                        try
+                        {
+                            var features = System.Text.Json.JsonSerializer.Deserialize<string[]>(Model.Features);
+                            if (features != null && features.Any())
+                            {
+                                <div class="row">
+                                    @foreach (var feature in features)
+                                    {
+                                        <div class="col-md-6 mb-2">
+                                            <div class="d-flex align-items-center">
+                                                <i class="bi bi-check-circle text-success me-2"></i>
+                                                <span>@feature</span>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        }
+                        catch
+                        {
+                            <p class="text-muted">Features data format error</p>
+                        }
+                    }
+                </div>
+            </div>
+        }
+
+        <!-- Subscriptions Using This Plan -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-people me-2"></i>Active Subscriptions
+                </h5>
+                <span class="badge bg-info">@(Model.PaymentHistories?.Count(p => p.Status == PaymentStatus.Success) ?? 0) subscriptions</span>
+            </div>
+            <div class="card-body">
+                @if (Model.PaymentHistories?.Any(p => p.Status == PaymentStatus.Success) == true)
+                {
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover">
+                            <thead>
+                                <tr>
+                                    <th>User</th>
+                                    <th>Company</th>
+                                    <th>Start Date</th>
+                                    <th>End Date</th>
+                                    <th>Amount</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var payment in Model.PaymentHistories.Where(p => p.Status == PaymentStatus.Success).Take(10))
+                                {
+                                    <tr>
+                                        <td>
+                                            <a href="@Url.Action("UserDetails", new { id = payment.User.Id })" class="text-decoration-none">
+                                                @payment.User.FirstName @payment.User.LastName
+                                            </a>
+                                        </td>
+                                        <td>
+                                            @if (payment.Company != null)
+                                            {
+                                                <a href="@Url.Action("CompanyDetails", new { id = payment.Company.Id })" class="text-decoration-none">
+                                                    @payment.Company.Name
+                                                </a>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">Individual</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            @if (payment.SubscriptionStartDate.HasValue)
+                                            {
+                                                @payment.SubscriptionStartDate.Value.ToString("MMM dd, yyyy")
+                                            }
+                                        </td>
+                                        <td>
+                                            @if (payment.SubscriptionEndDate.HasValue)
+                                            {
+                                                @payment.SubscriptionEndDate.Value.ToString("MMM dd, yyyy")
+                                            }
+                                        </td>
+                                        <td class="text-success fw-bold">$@payment.FinalAmount.ToString("N2")</td>
+                                        <td>
+                                            <a href="@Url.Action("PaymentDetails", new { id = payment.Id })" 
+                                               class="btn btn-sm btn-outline-info" title="View Payment">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    @if (Model.PaymentHistories.Count(p => p.Status == PaymentStatus.Success) > 10)
+                    {
+                        <div class="text-center mt-3">
+                            <a href="@Url.Action("PaymentHistory", new { subscriptionPlanId = Model.Id })" class="btn btn-outline-primary">
+                                View All @Model.PaymentHistories.Count(p => p.Status == PaymentStatus.Success) Subscriptions
+                            </a>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="text-center py-3">
+                        <i class="bi bi-people text-muted" style="font-size: 2rem;"></i>
+                        <p class="text-muted mt-2 mb-0">No active subscriptions for this plan</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <!-- Plan Statistics -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-graph-up me-2"></i>Plan Statistics
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6 border-end">
+                        <h4 class="text-primary mb-0">@(Model.PaymentHistories?.Count(p => p.Status == PaymentStatus.Success) ?? 0)</h4>
+                        <small class="text-muted">Total Subscriptions</small>
+                    </div>
+                    <div class="col-6">
+                        @{
+                            var totalRevenue = Model.PaymentHistories?.Where(p => p.Status == PaymentStatus.Success).Sum(p => p.FinalAmount) ?? 0;
+                        }
+                        <h4 class="text-success mb-0">$@totalRevenue.ToString("N0")</h4>
+                        <small class="text-muted">Total Revenue</small>
+                    </div>
+                </div>
+                <hr>
+                <div class="row text-center">
+                    <div class="col-6 border-end">
+                        <h4 class="text-info mb-0">@(Model.PaymentHistories?.Count(p => p.Status == PaymentStatus.Failed) ?? 0)</h4>
+                        <small class="text-muted">Failed Payments</small>
+                    </div>
+                    <div class="col-6">
+                        <h4 class="text-warning mb-0">@(Model.PaymentHistories?.Count(p => p.Status == PaymentStatus.Refunded) ?? 0)</h4>
+                        <small class="text-muted">Refunds</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-lightning me-2"></i>Quick Actions
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="@Url.Action("EditSubscriptionPlan", new { id = Model.Id })" class="btn btn-outline-primary">
+                        <i class="bi bi-pencil me-2"></i>Edit Plan
+                    </a>
+                    
+                    <button type="button" class="btn btn-outline-@(Model.IsActive ? "warning" : "success")" 
+                            onclick="toggleStatus(@Model.Id, '@Model.Name')">
+                        <i class="bi bi-@(Model.IsActive ? "pause" : "play") me-2"></i>
+                        @(Model.IsActive ? "Deactivate" : "Activate") Plan
+                    </button>
+                    
+                    <button type="button" class="btn btn-outline-@(Model.IsPopular ? "secondary" : "warning")" 
+                            onclick="togglePopular(@Model.Id, '@Model.Name')">
+                        <i class="bi bi-star me-2"></i>
+                        @(Model.IsPopular ? "Remove from" : "Mark as") Popular
+                    </button>
+                    
+                    <a href="@Url.Action("ServiceDetails", new { id = Model.Service.Id })" class="btn btn-outline-info">
+                        <i class="bi bi-briefcase me-2"></i>View Service
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Plan Meta Information -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-info-circle me-2"></i>Plan Meta
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Created Date</label>
+                    <p class="form-control-plaintext">
+                        <i class="bi bi-calendar me-1"></i>
+                        @Model.CreatedAt.ToString("MMMM dd, yyyy 'at' hh:mm tt")
+                    </p>
+                </div>
+                @if (Model.UpdatedAt.HasValue)
+                {
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Last Updated</label>
+                        <p class="form-control-plaintext">
+                            <i class="bi bi-clock me-1"></i>
+                            @Model.UpdatedAt.Value.ToString("MMMM dd, yyyy 'at' hh:mm tt")
+                        </p>
+                    </div>
+                }
+                <div class="mb-0">
+                    <label class="form-label fw-bold">Plan ID</label>
+                    <p class="form-control-plaintext">
+                        <code>#@Model.Id</code>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Toggle plan status
+        async function toggleStatus(planId, planName) {
+            if (!confirm(`Are you sure you want to toggle the status of "${planName}"?`)) {
+                return;
+            }
+
+            showLoading();
+            try {
+                const response = await fetch(`@Url.Action("ToggleSubscriptionPlanStatus")`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                    },
+                    body: JSON.stringify({ id: planId })
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    showAlert('success', result.message);
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    showAlert('error', result.message || 'Failed to toggle plan status');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('error', 'An error occurred while updating plan status');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // Toggle popular status
+        async function togglePopular(planId, planName) {
+            if (!confirm(`Are you sure you want to toggle the popular status of "${planName}"?`)) {
+                return;
+            }
+
+            showLoading();
+            try {
+                const response = await fetch(`@Url.Action("ToggleSubscriptionPlanPopular")`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                    },
+                    body: JSON.stringify({ id: planId })
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    showAlert('success', result.message);
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    showAlert('error', result.message || 'Failed to toggle popular status');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('error', 'An error occurred while updating popular status');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // Show alert messages
+        function showAlert(type, message) {
+            const alertHtml = `
+                <div class="alert alert-${type === 'error' ? 'danger' : 'success'} alert-dismissible fade show" role="alert">
+                    <i class="bi bi-${type === 'error' ? 'exclamation-triangle' : 'check-circle'} me-2"></i>
+                    <strong>${type === 'error' ? 'Error!' : 'Success!'}</strong> ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+            
+            const mainContent = document.querySelector('main .admin-content');
+            const firstChild = mainContent.firstElementChild;
+            const alertDiv = document.createElement('div');
+            alertDiv.innerHTML = alertHtml;
+            mainContent.insertBefore(alertDiv.firstElementChild, firstChild);
+        }
+    </script>
+}
+
+<style>
+    .form-control-plaintext {
+        padding-top: 0.375rem;
+        padding-bottom: 0.375rem;
+        margin-bottom: 0;
+    }
+    
+    .card-header h5 {
+        color: #495057;
+    }
+    
+    .bg-light {
+        background-color: #f8f9fa !important;
+    }
+</style>

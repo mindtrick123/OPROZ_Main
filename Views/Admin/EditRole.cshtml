@@ -1,0 +1,190 @@
+@model IdentityRole
+@{
+    ViewData["Title"] = "Edit Role";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<!-- Page Title -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="page-title">Edit Role</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="@Url.Action("Index", "Admin")">Admin</a></li>
+                <li class="breadcrumb-item"><a href="@Url.Action("Roles")">Roles</a></li>
+                <li class="breadcrumb-item active" aria-current="page">@Model.Name</li>
+            </ol>
+        </nav>
+    </div>
+    <div>
+        <a href="@Url.Action("Roles")" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Back to List
+        </a>
+    </div>
+</div>
+
+@{
+    var isSystemRole = new[] { "Admin", "Manager", "User", "Support" }.Contains(Model.Name);
+}
+
+<!-- System Role Warning -->
+@if (isSystemRole)
+{
+    <div class="alert alert-warning" role="alert">
+        <i class="bi bi-shield-exclamation me-2"></i>
+        <strong>System Role:</strong> This is a built-in system role. Changes to the name are restricted to maintain system integrity.
+    </div>
+}
+
+<!-- Form Card -->
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-shield-fill-check me-2"></i>Edit Role Information
+                </h5>
+                @if (isSystemRole)
+                {
+                    <span class="badge bg-success">System Role</span>
+                }
+                else
+                {
+                    <span class="badge bg-info">Custom Role</span>
+                }
+            </div>
+            <div class="card-body">
+                <form asp-action="EditRole" method="post" id="roleForm" novalidate>
+                    <input type="hidden" name="id" value="@Model.Id" />
+                    
+                    <!-- Basic Information Section -->
+                    <div class="mb-4">
+                        <h6 class="text-primary border-bottom pb-2 mb-3">
+                            <i class="bi bi-info-circle me-1"></i>Role Information
+                        </h6>
+                        
+                        <div class="mb-3">
+                            <label for="name" class="form-label required">Role Name</label>
+                            @if (isSystemRole)
+                            {
+                                <input type="text" class="form-control" id="name" name="name" 
+                                       value="@Model.Name" readonly />
+                                <div class="form-text text-warning">
+                                    <i class="bi bi-lock me-1"></i>
+                                    System role names cannot be modified to ensure platform stability.
+                                </div>
+                            }
+                            else
+                            {
+                                <input type="text" class="form-control" id="name" name="name" 
+                                       value="@Model.Name" placeholder="Enter role name" 
+                                       maxlength="50" required />
+                                <div class="form-text">
+                                    Use a descriptive name that clearly indicates the role's purpose.
+                                </div>
+                            }
+                            <span class="text-danger" id="nameError"></span>
+                        </div>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="d-flex gap-2 justify-content-end">
+                        <a href="@Url.Action("Roles")" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-circle me-2"></i>Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary" id="submitBtn">
+                            <i class="bi bi-check-circle me-2"></i>Update Role
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <!-- Role Statistics -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-graph-up me-2"></i>Role Overview
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="text-center">
+                    <h4 class="text-primary mb-0">0</h4>
+                    <small class="text-muted">Users Assigned</small>
+                </div>
+                <hr>
+                <div class="small">
+                    <div class="d-flex justify-content-between">
+                        <span>Role Type:</span>
+                        <span class="badge bg-@(isSystemRole ? "success" : "info")">
+                            @(isSystemRole ? "System" : "Custom")
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-lightning me-2"></i>Quick Actions
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="@Url.Action("Users", new { role = Model.Name })" class="btn btn-outline-info">
+                        <i class="bi bi-people me-2"></i>View Users
+                    </a>
+                    
+                    @if (!isSystemRole)
+                    {
+                        <button type="button" class="btn btn-outline-danger" onclick="deleteRole('@Model.Id', '@Model.Name')">
+                            <i class="bi bi-trash me-2"></i>Delete Role
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $('#roleForm').on('submit', function(e) {
+            e.preventDefault();
+            
+            const name = $('#name').val().trim();
+            
+            if (!name) {
+                $('#nameError').text('Role name is required.');
+                $('#name').addClass('is-invalid');
+                return;
+            }
+            
+            // Submit the form normally
+            this.submit();
+        });
+
+        function deleteRole(roleId, roleName) {
+            if (confirm(`Are you sure you want to delete the role "${roleName}"?`)) {
+                // Implement delete functionality
+                window.location.href = `@Url.Action("DeleteRole")?id=${roleId}`;
+            }
+        }
+    </script>
+}
+
+<style>
+    .required::after {
+        content: " *";
+        color: #dc3545;
+    }
+    
+    .is-invalid {
+        border-color: #dc3545;
+    }
+</style>

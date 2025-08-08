@@ -1,0 +1,425 @@
+@model Company
+@{
+    ViewData["Title"] = "Company Details";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<!-- Page Title -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="page-title">Company Details</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="@Url.Action("Index", "Admin")">Admin</a></li>
+                <li class="breadcrumb-item"><a href="@Url.Action("Companies")">Companies</a></li>
+                <li class="breadcrumb-item active" aria-current="page">@Model.Name</li>
+            </ol>
+        </nav>
+    </div>
+    <div>
+        <a href="@Url.Action("EditCompany", new { id = Model.Id })" class="btn btn-primary">
+            <i class="bi bi-pencil me-2"></i>Edit Company
+        </a>
+        <a href="@Url.Action("Companies")" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Back to List
+        </a>
+    </div>
+</div>
+
+<!-- Company Status Alert -->
+@if (!Model.IsActive)
+{
+    <div class="alert alert-warning" role="alert">
+        <i class="bi bi-exclamation-triangle me-2"></i>
+        <strong>Inactive Company:</strong> This company is currently inactive and users may have limited access.
+    </div>
+}
+
+<div class="row">
+    <!-- Company Information -->
+    <div class="col-lg-8">
+        <!-- Basic Information Card -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-building me-2"></i>Company Information
+                </h5>
+                <span class="badge bg-@(Model.IsActive ? "success" : "danger")">
+                    @(Model.IsActive ? "Active" : "Inactive")
+                </span>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Company Name</label>
+                            <p class="form-control-plaintext">@Model.Name</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Website</label>
+                            @if (!string.IsNullOrEmpty(Model.Website))
+                            {
+                                <p class="form-control-plaintext">
+                                    <a href="@Model.Website" target="_blank" class="text-decoration-none">
+                                        <i class="bi bi-globe me-1"></i>@Model.Website
+                                        <i class="bi bi-box-arrow-up-right ms-1"></i>
+                                    </a>
+                                </p>
+                            }
+                            else
+                            {
+                                <p class="form-control-plaintext text-muted">Not provided</p>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                @if (!string.IsNullOrEmpty(Model.Description))
+                {
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Description</label>
+                        <p class="form-control-plaintext">@Model.Description</p>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Contact Information Card -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-telephone me-2"></i>Contact Information
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Phone</label>
+                            @if (!string.IsNullOrEmpty(Model.Phone))
+                            {
+                                <p class="form-control-plaintext">
+                                    <i class="bi bi-telephone me-1"></i>@Model.Phone
+                                </p>
+                            }
+                            else
+                            {
+                                <p class="form-control-plaintext text-muted">Not provided</p>
+                            }
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Postal Code</label>
+                            <p class="form-control-plaintext">@(Model.PostalCode ?? "Not provided")</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Address</label>
+                    @if (!string.IsNullOrEmpty(Model.Address))
+                    {
+                        <p class="form-control-plaintext">
+                            <i class="bi bi-geo-alt me-1"></i>
+                            @Model.Address
+                            @if (!string.IsNullOrEmpty(Model.City) || !string.IsNullOrEmpty(Model.State) || !string.IsNullOrEmpty(Model.Country))
+                            {
+                                <br>
+                                <span class="text-muted">
+                                    @Model.City@(!string.IsNullOrEmpty(Model.City) && (!string.IsNullOrEmpty(Model.State) || !string.IsNullOrEmpty(Model.Country)) ? ", " : "")@Model.State@(!string.IsNullOrEmpty(Model.State) && !string.IsNullOrEmpty(Model.Country) ? ", " : "")@Model.Country
+                                </span>
+                            }
+                        </p>
+                    }
+                    else
+                    {
+                        <p class="form-control-plaintext text-muted">Not provided</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Company Users -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-people me-2"></i>Company Users
+                </h5>
+                <span class="badge bg-info">@(Model.Users?.Count ?? 0) users</span>
+            </div>
+            <div class="card-body">
+                @if (Model.Users?.Any() == true)
+                {
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover">
+                            <thead>
+                                <tr>
+                                    <th>User</th>
+                                    <th>Email</th>
+                                    <th>Status</th>
+                                    <th>Last Login</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var user in Model.Users.OrderBy(u => u.FirstName))
+                                {
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="avatar-xs bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2">
+                                                    @user.FirstName.First()@user.LastName.First()
+                                                </div>
+                                                <span>@user.FirstName @user.LastName</span>
+                                            </div>
+                                        </td>
+                                        <td>@user.Email</td>
+                                        <td>
+                                            <span class="badge bg-@(user.IsActive ? "success" : "danger")">
+                                                @(user.IsActive ? "Active" : "Inactive")
+                                            </span>
+                                        </td>
+                                        <td>
+                                            @if (user.LastLoginAt.HasValue)
+                                            {
+                                                <span class="text-muted">@user.LastLoginAt.Value.ToString("MMM dd, yyyy")</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">Never</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <a href="@Url.Action("UserDetails", new { id = user.Id })" 
+                                               class="btn btn-sm btn-outline-info" title="View User">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-3">
+                        <i class="bi bi-people text-muted" style="font-size: 2rem;"></i>
+                        <p class="text-muted mt-2 mb-0">No users assigned to this company</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <!-- Statistics Card -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-graph-up me-2"></i>Company Statistics
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6 border-end">
+                        <h4 class="text-primary mb-0">@(Model.Users?.Count ?? 0)</h4>
+                        <small class="text-muted">Total Users</small>
+                    </div>
+                    <div class="col-6">
+                        <h4 class="text-info mb-0">@(Model.Users?.Count(u => u.IsActive) ?? 0)</h4>
+                        <small class="text-muted">Active Users</small>
+                    </div>
+                </div>
+                <hr>
+                <div class="row text-center">
+                    <div class="col-6 border-end">
+                        @{
+                            var totalRevenue = Model.PaymentHistories?.Where(p => p.Status == PaymentStatus.Success).Sum(p => p.FinalAmount) ?? 0;
+                        }
+                        <h4 class="text-success mb-0">$@totalRevenue.ToString("N0")</h4>
+                        <small class="text-muted">Total Revenue</small>
+                    </div>
+                    <div class="col-6">
+                        <h4 class="text-warning mb-0">@(Model.PaymentHistories?.Count ?? 0)</h4>
+                        <small class="text-muted">Transactions</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment History Card -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-credit-card me-2"></i>Recent Payments
+                </h5>
+                @if (Model.PaymentHistories?.Any() == true)
+                {
+                    <a href="@Url.Action("PaymentHistory", new { companyId = Model.Id })" class="btn btn-sm btn-outline-primary">
+                        View All
+                    </a>
+                }
+            </div>
+            <div class="card-body">
+                @if (Model.PaymentHistories?.Any() == true)
+                {
+                    @foreach (var payment in Model.PaymentHistories.OrderByDescending(p => p.PaymentDate).Take(5))
+                    {
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div>
+                                <small class="fw-bold">$@payment.FinalAmount.ToString("N2")</small>
+                                <br>
+                                <small class="text-muted">@payment.PaymentDate.ToString("MMM dd, yyyy")</small>
+                            </div>
+                            <span class="badge bg-@(payment.Status == PaymentStatus.Success ? "success" : payment.Status == PaymentStatus.Failed ? "danger" : "warning")">
+                                @payment.Status
+                            </span>
+                        </div>
+                        @if (payment != Model.PaymentHistories.OrderByDescending(p => p.PaymentDate).Take(5).Last())
+                        {
+                            <hr class="my-2">
+                        }
+                    }
+                }
+                else
+                {
+                    <div class="text-center py-3">
+                        <i class="bi bi-credit-card text-muted" style="font-size: 1.5rem;"></i>
+                        <p class="text-muted mt-2 mb-0">No payment history</p>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Company Meta Information -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-info-circle me-2"></i>Company Meta
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Created Date</label>
+                    <p class="form-control-plaintext">
+                        <i class="bi bi-calendar me-1"></i>
+                        @Model.CreatedAt.ToString("MMMM dd, yyyy 'at' hh:mm tt")
+                    </p>
+                </div>
+                @if (Model.UpdatedAt.HasValue)
+                {
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Last Updated</label>
+                        <p class="form-control-plaintext">
+                            <i class="bi bi-clock me-1"></i>
+                            @Model.UpdatedAt.Value.ToString("MMMM dd, yyyy 'at' hh:mm tt")
+                        </p>
+                    </div>
+                }
+                <div class="mb-0">
+                    <label class="form-label fw-bold">Company ID</label>
+                    <p class="form-control-plaintext">
+                        <code>#@Model.Id</code>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Action Buttons -->
+<div class="card mt-4">
+    <div class="card-body">
+        <div class="d-flex gap-2 justify-content-center">
+            <a href="@Url.Action("EditCompany", new { id = Model.Id })" class="btn btn-primary">
+                <i class="bi bi-pencil me-2"></i>Edit Company
+            </a>
+            <button type="button" class="btn btn-@(Model.IsActive ? "warning" : "success")" 
+                    onclick="toggleStatus(@Model.Id, '@Model.Name')">
+                <i class="bi bi-@(Model.IsActive ? "pause" : "play") me-2"></i>
+                @(Model.IsActive ? "Deactivate" : "Activate") Company
+            </button>
+            <a href="@Url.Action("Companies")" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-2"></i>Back to Companies
+            </a>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Toggle company status
+        async function toggleStatus(companyId, companyName) {
+            if (!confirm(`Are you sure you want to toggle the status of "${companyName}"?`)) {
+                return;
+            }
+
+            showLoading();
+            try {
+                const response = await fetch(`@Url.Action("ToggleCompanyStatus")`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                    },
+                    body: JSON.stringify({ id: companyId })
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    // Show success message and reload
+                    showAlert('success', result.message);
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    showAlert('error', result.message || 'Failed to toggle company status');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('error', 'An error occurred while updating company status');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // Show alert messages
+        function showAlert(type, message) {
+            const alertHtml = `
+                <div class="alert alert-${type === 'error' ? 'danger' : 'success'} alert-dismissible fade show" role="alert">
+                    <i class="bi bi-${type === 'error' ? 'exclamation-triangle' : 'check-circle'} me-2"></i>
+                    <strong>${type === 'error' ? 'Error!' : 'Success!'}</strong> ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+            
+            // Insert at the top of the main content
+            const mainContent = document.querySelector('main .admin-content');
+            const firstChild = mainContent.firstElementChild;
+            const alertDiv = document.createElement('div');
+            alertDiv.innerHTML = alertHtml;
+            mainContent.insertBefore(alertDiv.firstElementChild, firstChild);
+        }
+    </script>
+}
+
+<style>
+    .avatar-xs {
+        width: 24px;
+        height: 24px;
+        font-size: 0.75rem;
+    }
+    
+    .form-control-plaintext {
+        padding-top: 0.375rem;
+        padding-bottom: 0.375rem;
+        margin-bottom: 0;
+    }
+    
+    .card-header h5 {
+        color: #495057;
+    }
+</style>
