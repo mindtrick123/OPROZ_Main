@@ -225,6 +225,10 @@ CppUpgradeReport.*
 *.ldf
 *.ndf
 
+# SQLite files
+*.db-shm
+*.db-wal
+
 # Business Intelligence projects
 *.rdl.data
 *.bim.layout
