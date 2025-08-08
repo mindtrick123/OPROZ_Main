@@ -23,7 +23,13 @@
                 <p>Through our comprehensive SaaS platform, we provide cutting-edge solutions that scale with your business, ensuring you stay ahead of the curve while focusing on what matters most - your core business objectives.</p>
             </div>
             <div class="col-lg-6">
-                <img src="https://via.placeholder.com/500x300/007bff/ffffff?text=Our+Mission" alt="Our Mission" class="img-fluid rounded shadow">
+                <div style="background: linear-gradient(135deg, #f8f9fa, #e9ecef); border-radius: 1rem; padding: 2rem; height: 300px; display: flex; align-items: center; justify-content: center; border: 2px dashed #007bff;">
+                    <div style="text-align: center; color: #007bff;">
+                        <div style="font-size: 3rem; margin-bottom: 1rem;">🎯</div>
+                        <h4>Our Mission</h4>
+                        <p>Empowering Business Growth</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -44,14 +50,16 @@
                 <div class="col-lg-4 col-md-6">
                     <div class="card team-card h-100 text-center">
                         <div class="card-body p-4">
-                            <img src="@member.ImageUrl" alt="@member.Name" class="team-image mb-3">
+                            <div style="width: 150px; height: 150px; border-radius: 50%; background: linear-gradient(135deg, #007bff, #0056b3); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; color: white; font-size: 3rem;">
+                                @(member.Name.Substring(0, 1))
+                            </div>
                             <h5 class="card-title">@member.Name</h5>
                             <p class="text-primary fw-bold mb-2">@member.Position</p>
                             <p class="card-text">@member.Description</p>
                         </div>
                         <div class="card-footer bg-transparent">
                             <a href="@member.LinkedInUrl" target="_blank" class="btn btn-outline-primary">
-                                <i class="fab fa-linkedin-in me-1"></i>Connect
+                                💼 Connect
                             </a>
                         </div>
                     </div>

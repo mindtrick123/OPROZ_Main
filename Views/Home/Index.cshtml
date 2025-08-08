@@ -15,16 +15,21 @@
                 </p>
                 <div class="d-flex flex-wrap gap-3">
                     <a href="@Url.Action("Services", "Home")" class="btn btn-light btn-lg">
-                        <i class="fas fa-rocket me-2"></i>Explore Services
+                        <span class="icon-rocket"></span>Explore Services
                     </a>
                     <a href="@Url.Action("Contact", "Home")" class="btn btn-outline-light btn-lg">
-                        <i class="fas fa-comments me-2"></i>Get Started
+                        <span class="icon-comments"></span>Get Started
                     </a>
                 </div>
             </div>
             <div class="col-lg-6 text-center">
-                <img src="https://via.placeholder.com/500x400/007bff/ffffff?text=OPROZ+Platform" 
-                     alt="OPROZ Platform" class="img-fluid rounded shadow">
+                <div style="background: linear-gradient(135deg, #ffffff20, #ffffff40); border-radius: 1rem; padding: 2rem; height: 400px; display: flex; align-items: center; justify-content: center; border: 2px dashed rgba(255,255,255,0.3);">
+                    <div style="text-align: center;">
+                        <div style="font-size: 4rem; margin-bottom: 1rem;">🚀</div>
+                        <h3>OPROZ Platform</h3>
+                        <p>Transform Your Business</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -46,7 +51,7 @@
             <div class="col-md-4">
                 <div class="card feature-card h-100 text-center p-4">
                     <div class="mb-3">
-                        <i class="fas fa-cogs fa-3x text-primary"></i>
+                        <div class="icon icon-cogs"></div>
                     </div>
                     <h5 class="card-title">Scalable Solutions</h5>
                     <p class="card-text">
@@ -58,7 +63,7 @@
             <div class="col-md-4">
                 <div class="card feature-card h-100 text-center p-4">
                     <div class="mb-3">
-                        <i class="fas fa-shield-alt fa-3x text-primary"></i>
+                        <div class="icon icon-shield"></div>
                     </div>
                     <h5 class="card-title">Enterprise Security</h5>
                     <p class="card-text">
@@ -70,7 +75,7 @@
             <div class="col-md-4">
                 <div class="card feature-card h-100 text-center p-4">
                     <div class="mb-3">
-                        <i class="fas fa-headset fa-3x text-primary"></i>
+                        <div class="icon icon-headset"></div>
                     </div>
                     <h5 class="card-title">24/7 Support</h5>
                     <p class="card-text">
@@ -103,7 +108,7 @@
                         <div class="card feature-card h-100">
                             <div class="card-body text-center p-4">
                                 <div class="mb-3">
-                                    <i class="@service.IconClass fa-3x text-primary"></i>
+                                    <div class="icon" style="font-size: 3rem; color: var(--primary-color);">@(service.IconClass?.Contains("web") == true ? "🌐" : service.IconClass?.Contains("mobile") == true ? "📱" : service.IconClass?.Contains("marketing") == true ? "📈" : "💼")</div>
                                 </div>
                                 <h5 class="card-title">@service.Name</h5>
                                 <p class="card-text">@service.ShortDescription</p>
@@ -114,7 +119,7 @@
                             </div>
                             <div class="card-footer bg-transparent">
                                 <a href="@Url.Action("Services", "Home")" class="btn btn-outline-primary">
-                                    Learn More <i class="fas fa-arrow-right ms-1"></i>
+                                    Learn More <span class="icon-arrow-right"></span>
                                 </a>
                             </div>
                         </div>
@@ -158,9 +163,9 @@
                                 </div>
                                 <p class="card-text">@plan.Description</p>
                                 <ul class="list-unstyled">
-                                    <li><i class="fas fa-check text-success me-2"></i>Up to @plan.MaxUsers users</li>
-                                    <li><i class="fas fa-check text-success me-2"></i>@(plan.MaxStorage / 1024)GB storage</li>
-                                    <li><i class="fas fa-check text-success me-2"></i>Email support</li>
+                                    <li><span class="icon-check"></span>Up to @plan.MaxUsers users</li>
+                                    <li><span class="icon-check"></span>@(plan.MaxStorage / 1024)GB storage</li>
+                                    <li><span class="icon-check"></span>Email support</li>
                                 </ul>
                             </div>
                             <div class="card-footer bg-transparent">
@@ -212,10 +217,10 @@
                 </p>
                 <div class="d-flex flex-wrap gap-3 justify-content-center">
                     <a href="@Url.Action("Register", "Account")" class="btn btn-primary btn-lg">
-                        <i class="fas fa-rocket me-2"></i>Start Free Trial
+                        <span class="icon-rocket"></span>Start Free Trial
                     </a>
                     <a href="@Url.Action("Contact", "Home")" class="btn btn-outline-primary btn-lg">
-                        <i class="fas fa-calendar-alt me-2"></i>Schedule Demo
+                        <span class="icon-calendar"></span>Schedule Demo
                     </a>
                 </div>
             </div>
