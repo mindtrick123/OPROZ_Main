@@ -31,7 +31,8 @@ namespace OPROZ_Main.Controllers
                     .Take(6)
                     .ToListAsync(),
                 PopularPlans = await _context.SubscriptionPlans
-                    .Include(p => p.Service)
+                    .Include(p => p.PlanServices)
+                    .ThenInclude(ps => ps.Service)
                     .Where(p => p.IsActive && p.IsPopular)
                     .Take(3)
                     .ToListAsync()
@@ -91,11 +92,7 @@ namespace OPROZ_Main.Controllers
                     .Where(s => s.IsActive)
                     .OrderBy(s => s.DisplayOrder)
                     .ToListAsync(),
-                SubscriptionPlans = await _context.SubscriptionPlans
-                    .Include(p => p.Service)
-                    .Where(p => p.IsActive)
-                    .GroupBy(p => p.Service)
-                    .ToDictionaryAsync(g => g.Key, g => g.ToList())
+                SubscriptionPlans = new Dictionary<Service, List<SubscriptionPlan>>() // For now, empty dictionary until we update view models
             };
 
             return View(model);

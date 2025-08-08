@@ -14,6 +14,7 @@ namespace OPROZ_Main.Data
         public DbSet<Company> Companies { get; set; }
         public DbSet<Service> Services { get; set; }
         public DbSet<SubscriptionPlan> SubscriptionPlans { get; set; }
+        public DbSet<PlanService> PlanServices { get; set; }
         public DbSet<Offer> Offers { get; set; }
         public DbSet<PaymentHistory> PaymentHistories { get; set; }
         public DbSet<HelpQuery> HelpQueries { get; set; }
@@ -68,13 +69,24 @@ namespace OPROZ_Main.Data
             // Configure SubscriptionPlan
             builder.Entity<SubscriptionPlan>(entity =>
             {
-                entity.HasOne(d => d.Service)
-                    .WithMany(p => p.SubscriptionPlans)
-                    .HasForeignKey(d => d.ServiceId)
-                    .OnDelete(DeleteBehavior.Cascade);
-
                 entity.Property(e => e.Price)
                     .HasColumnType("decimal(18,2)");
+            });
+
+            // Configure PlanService many-to-many
+            builder.Entity<PlanService>(entity =>
+            {
+                entity.HasKey(ps => new { ps.SubscriptionPlanId, ps.ServiceId });
+
+                entity.HasOne(ps => ps.SubscriptionPlan)
+                    .WithMany(p => p.PlanServices)
+                    .HasForeignKey(ps => ps.SubscriptionPlanId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(ps => ps.Service)
+                    .WithMany(s => s.PlanServices)
+                    .HasForeignKey(ps => ps.ServiceId)
+                    .OnDelete(DeleteBehavior.Cascade);
             });
 
             // Configure Service

@@ -151,61 +151,107 @@ namespace OPROZ_Main.Data
             {
                 var plans = new List<SubscriptionPlan>();
 
-                foreach (var service in services)
+                // Create plans that can be associated with multiple services
+                plans.Add(new SubscriptionPlan
                 {
-                    // Basic plan
-                    plans.Add(new SubscriptionPlan
-                    {
-                        Name = $"{service.Name} - Basic",
-                        Description = $"Basic {service.Name} package",
-                        ServiceId = service.Id,
-                        Price = service.BasePrice ?? 0,
-                        Duration = PlanDuration.Monthly,
-                        Type = PlanType.Basic,
-                        Features = "[\"Basic features\", \"Email support\", \"Monthly reports\"]",
-                        MaxUsers = 5,
-                        MaxStorage = 1024,
-                        IsActive = true,
-                        IsPopular = false,
-                        CreatedAt = DateTime.UtcNow
-                    });
+                    Name = "Basic Monthly Plan",
+                    Description = "Basic plan with essential features for small businesses",
+                    Price = 499.00m,
+                    Duration = PlanDuration.Monthly,
+                    Type = PlanType.Basic,
+                    Features = "[\"Basic features\", \"Email support\", \"Monthly reports\", \"Up to 5 users\"]",
+                    MaxUsers = 5,
+                    MaxStorage = 1024,
+                    IsActive = true,
+                    IsPopular = false,
+                    CreatedAt = DateTime.UtcNow
+                });
 
-                    // Standard plan
-                    plans.Add(new SubscriptionPlan
-                    {
-                        Name = $"{service.Name} - Standard",
-                        Description = $"Standard {service.Name} package with additional features",
-                        ServiceId = service.Id,
-                        Price = (service.BasePrice ?? 0) * 1.8m,
-                        Duration = PlanDuration.Monthly,
-                        Type = PlanType.Standard,
-                        Features = "[\"All Basic features\", \"Priority support\", \"Weekly reports\", \"Advanced analytics\"]",
-                        MaxUsers = 15,
-                        MaxStorage = 5120,
-                        IsActive = true,
-                        IsPopular = true,
-                        CreatedAt = DateTime.UtcNow
-                    });
+                plans.Add(new SubscriptionPlan
+                {
+                    Name = "Standard Monthly Plan",
+                    Description = "Standard plan with additional features and priority support",
+                    Price = 999.00m,
+                    Duration = PlanDuration.Monthly,
+                    Type = PlanType.Standard,
+                    Features = "[\"All Basic features\", \"Priority support\", \"Weekly reports\", \"Advanced analytics\", \"Up to 15 users\"]",
+                    MaxUsers = 15,
+                    MaxStorage = 5120,
+                    IsActive = true,
+                    IsPopular = true,
+                    CreatedAt = DateTime.UtcNow
+                });
 
-                    // Premium plan
-                    plans.Add(new SubscriptionPlan
-                    {
-                        Name = $"{service.Name} - Premium",
-                        Description = $"Premium {service.Name} package with all features",
-                        ServiceId = service.Id,
-                        Price = (service.BasePrice ?? 0) * 2.5m,
-                        Duration = PlanDuration.Monthly,
-                        Type = PlanType.Premium,
-                        Features = "[\"All Standard features\", \"24/7 support\", \"Daily reports\", \"Custom integrations\", \"API access\"]",
-                        MaxUsers = 50,
-                        MaxStorage = 20480,
-                        IsActive = true,
-                        IsPopular = false,
-                        CreatedAt = DateTime.UtcNow
-                    });
-                }
+                plans.Add(new SubscriptionPlan
+                {
+                    Name = "Premium Monthly Plan",
+                    Description = "Premium plan with all features and 24/7 support",
+                    Price = 1999.00m,
+                    Duration = PlanDuration.Monthly,
+                    Type = PlanType.Premium,
+                    Features = "[\"All Standard features\", \"24/7 support\", \"Daily reports\", \"Custom integrations\", \"API access\", \"Up to 50 users\"]",
+                    MaxUsers = 50,
+                    MaxStorage = 20480,
+                    IsActive = true,
+                    IsPopular = false,
+                    CreatedAt = DateTime.UtcNow
+                });
+
+                plans.Add(new SubscriptionPlan
+                {
+                    Name = "Enterprise Yearly Plan",
+                    Description = "Enterprise plan with unlimited features and dedicated support",
+                    Price = 19999.00m,
+                    Duration = PlanDuration.Yearly,
+                    Type = PlanType.Enterprise,
+                    Features = "[\"All Premium features\", \"Dedicated support\", \"Unlimited users\", \"Custom development\", \"On-premise deployment\"]",
+                    MaxUsers = 0, // Unlimited
+                    MaxStorage = 0, // Unlimited
+                    IsActive = true,
+                    IsPopular = false,
+                    CreatedAt = DateTime.UtcNow
+                });
 
                 await context.SubscriptionPlans.AddRangeAsync(plans);
+                await context.SaveChangesAsync();
+
+                // Now associate services with plans
+                await SeedPlanServicesAsync(context, plans, services);
+            }
+        }
+
+        private static async Task SeedPlanServicesAsync(ApplicationDbContext context, List<SubscriptionPlan> plans, List<Service> services)
+        {
+            if (!await context.PlanServices.AnyAsync())
+            {
+                var planServices = new List<PlanService>();
+
+                // Basic plan - includes Web Development and IT Consulting
+                var basicPlan = plans.First(p => p.Type == PlanType.Basic);
+                planServices.Add(new PlanService { SubscriptionPlanId = basicPlan.Id, ServiceId = services.First(s => s.Name == "Web Development").Id });
+                planServices.Add(new PlanService { SubscriptionPlanId = basicPlan.Id, ServiceId = services.First(s => s.Name == "IT Consulting").Id });
+
+                // Standard plan - includes Web Development, Digital Marketing, and IT Consulting
+                var standardPlan = plans.First(p => p.Type == PlanType.Standard);
+                planServices.Add(new PlanService { SubscriptionPlanId = standardPlan.Id, ServiceId = services.First(s => s.Name == "Web Development").Id });
+                planServices.Add(new PlanService { SubscriptionPlanId = standardPlan.Id, ServiceId = services.First(s => s.Name == "Digital Marketing").Id });
+                planServices.Add(new PlanService { SubscriptionPlanId = standardPlan.Id, ServiceId = services.First(s => s.Name == "IT Consulting").Id });
+
+                // Premium plan - includes all services except Enterprise-specific ones
+                var premiumPlan = plans.First(p => p.Type == PlanType.Premium);
+                foreach (var service in services.Where(s => s.Name != "Cloud Solutions"))
+                {
+                    planServices.Add(new PlanService { SubscriptionPlanId = premiumPlan.Id, ServiceId = service.Id });
+                }
+
+                // Enterprise plan - includes all services
+                var enterprisePlan = plans.First(p => p.Type == PlanType.Enterprise);
+                foreach (var service in services)
+                {
+                    planServices.Add(new PlanService { SubscriptionPlanId = enterprisePlan.Id, ServiceId = service.Id });
+                }
+
+                await context.PlanServices.AddRangeAsync(planServices);
             }
         }
     }

@@ -32,7 +32,7 @@ namespace OPROZ_Main.Models
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }
 
-        public virtual ICollection<SubscriptionPlan> SubscriptionPlans { get; set; } = new List<SubscriptionPlan>();
         public virtual ICollection<Offer> Offers { get; set; } = new List<Offer>();
+        public virtual ICollection<PlanService> PlanServices { get; set; } = new List<PlanService>();
     }
 }

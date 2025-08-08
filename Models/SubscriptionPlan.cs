@@ -28,9 +28,6 @@ namespace OPROZ_Main.Models
         [StringLength(1000)]
         public string? Description { get; set; }
 
-        public int ServiceId { get; set; }
-        public virtual Service Service { get; set; } = null!;
-
         [Required]
         public decimal Price { get; set; }
 
@@ -53,5 +50,6 @@ namespace OPROZ_Main.Models
         public DateTime? UpdatedAt { get; set; }
 
         public virtual ICollection<PaymentHistory> PaymentHistories { get; set; } = new List<PaymentHistory>();
+        public virtual ICollection<PlanService> PlanServices { get; set; } = new List<PlanService>();
     }
 }
