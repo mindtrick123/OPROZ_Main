@@ -447,5 +447,287 @@ namespace OPROZ_Main.Controllers
                 return Json(new List<ChartData>());
             }
         }
+
+        // Offers Management
+        public async Task<IActionResult> Offers(string? search, int page = 1, string? filterType = null, bool? isActive = null)
+        {
+            try
+            {
+                var query = _context.Offers.Include(o => o.Service).AsQueryable();
+
+                if (!string.IsNullOrEmpty(search))
+                {
+                    query = query.Where(o => o.Name.Contains(search) || o.Code.Contains(search) || o.Description!.Contains(search));
+                }
+
+                if (!string.IsNullOrEmpty(filterType) && Enum.TryParse<OfferType>(filterType, out var offerType))
+                {
+                    query = query.Where(o => o.Type == offerType);
+                }
+
+                if (isActive.HasValue)
+                {
+                    query = query.Where(o => o.IsActive == isActive.Value);
+                }
+
+                query = query.OrderByDescending(o => o.CreatedAt);
+
+                var pageSize = 10;
+                var totalCount = await query.CountAsync();
+                var offers = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+
+                ViewBag.Search = search;
+                ViewBag.FilterType = filterType;
+                ViewBag.IsActive = isActive;
+                ViewBag.CurrentPage = page;
+                ViewBag.TotalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+                ViewBag.TotalCount = totalCount;
+
+                return View(offers);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading offers");
+                TempData["Error"] = "Error loading offers. Please try again.";
+                return View(new List<Offer>());
+            }
+        }
+
+        public async Task<IActionResult> OfferDetails(int id)
+        {
+            try
+            {
+                var offer = await _context.Offers
+                    .Include(o => o.Service)
+                    .Include(o => o.PaymentHistories)
+                    .FirstOrDefaultAsync(o => o.Id == id);
+
+                if (offer == null)
+                    return NotFound();
+
+                return View(offer);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading offer details for {OfferId}", id);
+                TempData["Error"] = "Error loading offer details. Please try again.";
+                return RedirectToAction(nameof(Offers));
+            }
+        }
+
+        public async Task<IActionResult> CreateOffer()
+        {
+            var services = await _context.Services
+                .Where(s => s.IsActive)
+                .Select(s => new { s.Id, s.Name })
+                .ToListAsync();
+
+            ViewBag.Services = services;
+            return View(new Offer { StartDate = DateTime.Today, EndDate = DateTime.Today.AddDays(30) });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateOffer(Offer offer)
+        {
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    // Check if code already exists
+                    var existingOffer = await _context.Offers.FirstOrDefaultAsync(o => o.Code == offer.Code);
+                    if (existingOffer != null)
+                    {
+                        ModelState.AddModelError("Code", "An offer with this code already exists.");
+                    }
+                    else
+                    {
+                        offer.CreatedAt = DateTime.UtcNow;
+                        _context.Offers.Add(offer);
+                        await _context.SaveChangesAsync();
+
+                        var currentUser = await _userManager.GetUserAsync(User);
+                        await _auditLogService.LogUserActionAsync(
+                            currentUser?.Id,
+                            currentUser?.Email,
+                            "Create Offer",
+                            $"Created offer: {offer.Name} ({offer.Code})",
+                            Request.HttpContext.Connection.RemoteIpAddress?.ToString()
+                        );
+
+                        TempData["Success"] = "Offer created successfully.";
+                        return RedirectToAction(nameof(Offers));
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error creating offer");
+                    TempData["Error"] = "Error creating offer. Please try again.";
+                }
+            }
+
+            var services = await _context.Services
+                .Where(s => s.IsActive)
+                .Select(s => new { s.Id, s.Name })
+                .ToListAsync();
+
+            ViewBag.Services = services;
+            return View(offer);
+        }
+
+        public async Task<IActionResult> EditOffer(int id)
+        {
+            try
+            {
+                var offer = await _context.Offers.FindAsync(id);
+                if (offer == null)
+                    return NotFound();
+
+                var services = await _context.Services
+                    .Where(s => s.IsActive)
+                    .Select(s => new { s.Id, s.Name })
+                    .ToListAsync();
+
+                ViewBag.Services = services;
+                return View(offer);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading offer for edit {OfferId}", id);
+                TempData["Error"] = "Error loading offer. Please try again.";
+                return RedirectToAction(nameof(Offers));
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditOffer(int id, Offer offer)
+        {
+            if (id != offer.Id)
+                return NotFound();
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    // Check if code already exists for other offers
+                    var existingOffer = await _context.Offers.FirstOrDefaultAsync(o => o.Code == offer.Code && o.Id != id);
+                    if (existingOffer != null)
+                    {
+                        ModelState.AddModelError("Code", "An offer with this code already exists.");
+                    }
+                    else
+                    {
+                        offer.UpdatedAt = DateTime.UtcNow;
+                        _context.Update(offer);
+                        await _context.SaveChangesAsync();
+
+                        var currentUser = await _userManager.GetUserAsync(User);
+                        await _auditLogService.LogUserActionAsync(
+                            currentUser?.Id,
+                            currentUser?.Email,
+                            "Update Offer",
+                            $"Updated offer: {offer.Name} ({offer.Code})",
+                            Request.HttpContext.Connection.RemoteIpAddress?.ToString()
+                        );
+
+                        TempData["Success"] = "Offer updated successfully.";
+                        return RedirectToAction(nameof(Offers));
+                    }
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!await OfferExistsAsync(offer.Id))
+                        return NotFound();
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error updating offer {OfferId}", id);
+                    TempData["Error"] = "Error updating offer. Please try again.";
+                }
+            }
+
+            var services = await _context.Services
+                .Where(s => s.IsActive)
+                .Select(s => new { s.Id, s.Name })
+                .ToListAsync();
+
+            ViewBag.Services = services;
+            return View(offer);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DeleteOffer(int id)
+        {
+            try
+            {
+                var offer = await _context.Offers.FindAsync(id);
+                if (offer == null)
+                    return Json(new { success = false, message = "Offer not found." });
+
+                // Check if offer is being used
+                var isUsed = await _context.PaymentHistories.AnyAsync(p => p.OfferId == id);
+                if (isUsed)
+                {
+                    return Json(new { success = false, message = "Cannot delete offer that has been used in payments." });
+                }
+
+                _context.Offers.Remove(offer);
+                await _context.SaveChangesAsync();
+
+                var currentUser = await _userManager.GetUserAsync(User);
+                await _auditLogService.LogUserActionAsync(
+                    currentUser?.Id,
+                    currentUser?.Email,
+                    "Delete Offer",
+                    $"Deleted offer: {offer.Name} ({offer.Code})",
+                    Request.HttpContext.Connection.RemoteIpAddress?.ToString()
+                );
+
+                return Json(new { success = true, message = "Offer deleted successfully." });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting offer {OfferId}", id);
+                return Json(new { success = false, message = "Error deleting offer. Please try again." });
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ToggleOfferStatus(int id)
+        {
+            try
+            {
+                var offer = await _context.Offers.FindAsync(id);
+                if (offer == null)
+                    return Json(new { success = false, message = "Offer not found." });
+
+                offer.IsActive = !offer.IsActive;
+                offer.UpdatedAt = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
+
+                var currentUser = await _userManager.GetUserAsync(User);
+                await _auditLogService.LogUserActionAsync(
+                    currentUser?.Id,
+                    currentUser?.Email,
+                    "Toggle Offer Status",
+                    $"Set offer {offer.Name} ({offer.Code}) status to {(offer.IsActive ? "Active" : "Inactive")}",
+                    Request.HttpContext.Connection.RemoteIpAddress?.ToString()
+                );
+
+                return Json(new { success = true, message = $"Offer {(offer.IsActive ? "activated" : "deactivated")} successfully.", isActive = offer.IsActive });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error toggling offer status {OfferId}", id);
+                return Json(new { success = false, message = "Error updating offer status. Please try again." });
+            }
+        }
+
+        private async Task<bool> OfferExistsAsync(int id)
+        {
+            return await _context.Offers.AnyAsync(e => e.Id == id);
+        }
     }
 }

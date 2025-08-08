@@ -1,0 +1,442 @@
+@model OPROZ_Main.Models.Offer
+@{
+    ViewData["Title"] = "Offer Details";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="page-title-box">
+                <h4 class="page-title">Offer Details</h4>
+                <div class="page-title-right">
+                    <ol class="breadcrumb m-0">
+                        <li class="breadcrumb-item"><a href="@Url.Action("Index", "Admin")">Admin</a></li>
+                        <li class="breadcrumb-item"><a href="@Url.Action("Offers", "Admin")">Offers</a></li>
+                        <li class="breadcrumb-item active">Details</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Main Offer Information -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-tag me-2"></i>@Model.Name
+                        </h5>
+                        <div>
+                            @if (Model.IsActive)
+                            {
+                                <span class="badge bg-success">Active</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Inactive</span>
+                            }
+                            @if (Model.EndDate < DateTime.Now)
+                            {
+                                <span class="badge bg-danger">Expired</span>
+                            }
+                            else if (Model.StartDate > DateTime.Now)
+                            {
+                                <span class="badge bg-warning">Not Started</span>
+                            }
+                            else if (Model.IsActive)
+                            {
+                                <span class="badge bg-info">Running</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    @if (!string.IsNullOrEmpty(Model.Description))
+                    {
+                        <p class="text-muted mb-3">@Model.Description</p>
+                    }
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="fw-bold">Offer Code</h6>
+                            <div class="mb-3">
+                                <span class="badge bg-primary fs-6">@Model.Code</span>
+                                <button class="btn btn-sm btn-outline-secondary ms-2" onclick="copyToClipboard('@Model.Code')" title="Copy code">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+
+                            <h6 class="fw-bold">Discount Value</h6>
+                            <p class="mb-3">
+                                @switch (Model.Type)
+                                {
+                                    case OPROZ_Main.Models.OfferType.Percentage:
+                                        <span class="h5 text-success">@Model.Value% Off</span>
+                                        break;
+                                    case OPROZ_Main.Models.OfferType.FixedAmount:
+                                        <span class="h5 text-success">$@Model.Value.ToString("N2") Off</span>
+                                        break;
+                                    case OPROZ_Main.Models.OfferType.FreeMonth:
+                                        <span class="h5 text-success">@Model.Value Free Month(s)</span>
+                                        break;
+                                }
+                                <br>
+                                <small class="text-muted">
+                                    Type: @Model.Type.ToString().Replace("FixedAmount", "Fixed Amount")
+                                </small>
+                            </p>
+
+                            <h6 class="fw-bold">Applicable Service</h6>
+                            <p class="mb-3">
+                                @if (Model.Service != null)
+                                {
+                                    <span class="badge bg-secondary">@Model.Service.Name</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-info">All Services</span>
+                                }
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="fw-bold">Validity Period</h6>
+                            <p class="mb-3">
+                                <strong>Start:</strong> @Model.StartDate.ToString("MMMM dd, yyyy")<br>
+                                <strong>End:</strong> @Model.EndDate.ToString("MMMM dd, yyyy")<br>
+                                <small class="text-muted">Duration: @((Model.EndDate - Model.StartDate).Days) days</small>
+                            </p>
+
+                            <h6 class="fw-bold">Usage Statistics</h6>
+                            <p class="mb-3">
+                                <strong>Times Used:</strong> @Model.UsedCount
+                                @if (Model.MaxUsageCount.HasValue)
+                                {
+                                    <span> / @Model.MaxUsageCount</span>
+                                    <div class="progress mt-1" style="height: 6px;">
+                                        <div class="progress-bar" role="progressbar" 
+                                             style="width: @((double)Model.UsedCount / Model.MaxUsageCount.Value * 100)%"
+                                             aria-valuenow="@Model.UsedCount" 
+                                             aria-valuemin="0" 
+                                             aria-valuemax="@Model.MaxUsageCount.Value">
+                                        </div>
+                                    </div>
+                                    @if (Model.UsedCount >= Model.MaxUsageCount.Value)
+                                    {
+                                        <small class="text-danger">Usage limit reached</small>
+                                    }
+                                    else
+                                    {
+                                        <small class="text-muted">@(Model.MaxUsageCount.Value - Model.UsedCount) uses remaining</small>
+                                    }
+                                }
+                                else
+                                {
+                                    <span class="text-muted"> / Unlimited</span>
+                                }
+                            </p>
+
+                            @if (Model.MinOrderAmount.HasValue)
+                            {
+                                <h6 class="fw-bold">Minimum Order Amount</h6>
+                                <p class="mb-3">$@Model.MinOrderAmount.Value.ToString("N2")</p>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment History -->
+            @if (Model.PaymentHistories != null && Model.PaymentHistories.Any())
+            {
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-history me-2"></i>Usage History
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>User</th>
+                                        <th>Order Amount</th>
+                                        <th>Discount</th>
+                                        <th>Final Amount</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var payment in Model.PaymentHistories.OrderByDescending(p => p.PaymentDate))
+                                    {
+                                        <tr>
+                                            <td>@payment.PaymentDate.ToString("MMM dd, yyyy")</td>
+                                            <td>@payment.User?.Email</td>
+                                            <td>$@payment.Amount.ToString("N2")</td>
+                                            <td>$@(payment.DiscountAmount?.ToString("N2") ?? "0.00")</td>
+                                            <td>$@payment.FinalAmount.ToString("N2")</td>
+                                            <td>
+                                                @switch (payment.Status)
+                                                {
+                                                    case OPROZ_Main.Models.PaymentStatus.Success:
+                                                        <span class="badge bg-success">Success</span>
+                                                        break;
+                                                    case OPROZ_Main.Models.PaymentStatus.Pending:
+                                                        <span class="badge bg-warning">Pending</span>
+                                                        break;
+                                                    case OPROZ_Main.Models.PaymentStatus.Failed:
+                                                        <span class="badge bg-danger">Failed</span>
+                                                        break;
+                                                    case OPROZ_Main.Models.PaymentStatus.Refunded:
+                                                        <span class="badge bg-info">Refunded</span>
+                                                        break;
+                                                    case OPROZ_Main.Models.PaymentStatus.Cancelled:
+                                                        <span class="badge bg-secondary">Cancelled</span>
+                                                        break;
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="col-lg-4">
+            <!-- Quick Actions -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-cogs me-2"></i>Quick Actions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="@Url.Action("EditOffer", new { id = Model.Id })" class="btn btn-primary">
+                            <i class="fas fa-edit me-2"></i>Edit Offer
+                        </a>
+                        
+                        <button type="button" class="btn btn-@(Model.IsActive ? "warning" : "success")" 
+                                onclick="toggleOfferStatus(@Model.Id, @Model.IsActive.ToString().ToLower())">
+                            <i class="fas fa-@(Model.IsActive ? "pause" : "play") me-2"></i>@(Model.IsActive ? "Deactivate" : "Activate")
+                        </button>
+                        
+                        <button type="button" class="btn btn-outline-info" onclick="copyOfferDetails()">
+                            <i class="fas fa-copy me-2"></i>Copy Details
+                        </button>
+                        
+                        <button type="button" class="btn btn-outline-danger" onclick="deleteOffer(@Model.Id, '@Model.Name')">
+                            <i class="fas fa-trash me-2"></i>Delete Offer
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Offer Summary -->
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-bar me-2"></i>Summary
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <div class="border-end">
+                                <h4 class="text-primary mb-1">@Model.UsedCount</h4>
+                                <p class="text-muted mb-0">Times Used</p>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <h4 class="text-success mb-1">
+                                @if (Model.PaymentHistories != null && Model.PaymentHistories.Any())
+                                {
+                                    var totalSavings = Model.PaymentHistories.Where(p => p.Status == OPROZ_Main.Models.PaymentStatus.Success).Sum(p => p.DiscountAmount ?? 0);
+                                    <span>$@totalSavings.ToString("N0")</span>
+                                }
+                                else
+                                {
+                                    <span>$0</span>
+                                }
+                            </h4>
+                            <p class="text-muted mb-0">Total Savings</p>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="row text-center">
+                        <div class="col-12">
+                            <p class="text-muted mb-1">Created</p>
+                            <p class="fw-bold">@Model.CreatedAt.ToString("MMM dd, yyyy")</p>
+                        </div>
+                    </div>
+                    
+                    @if (Model.UpdatedAt.HasValue)
+                    {
+                        <div class="row text-center">
+                            <div class="col-12">
+                                <p class="text-muted mb-1">Last Updated</p>
+                                <p class="fw-bold">@Model.UpdatedAt.Value.ToString("MMM dd, yyyy")</p>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Back to List -->
+            <div class="mt-3">
+                <a href="@Url.Action("Offers")" class="btn btn-outline-secondary w-100">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Offers List
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete the offer "<span id="deleteOfferName"></span>"?</p>
+                @if (Model.UsedCount > 0)
+                {
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Warning:</strong> This offer has been used @Model.UsedCount time(s). Deleting it may affect historical data.
+                    </div>
+                }
+                <p class="text-danger"><small>This action cannot be undone.</small></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let deleteOfferId = 0;
+
+        function deleteOffer(id, name) {
+            deleteOfferId = id;
+            document.getElementById('deleteOfferName').textContent = name;
+            new bootstrap.Modal(document.getElementById('deleteModal')).show();
+        }
+
+        document.getElementById('confirmDeleteBtn').addEventListener('click', function () {
+            if (deleteOfferId > 0) {
+                fetch('@Url.Action("DeleteOffer")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                    },
+                    body: JSON.stringify({ id: deleteOfferId })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast('success', data.message);
+                        setTimeout(() => {
+                            window.location.href = '@Url.Action("Offers")';
+                        }, 1500);
+                    } else {
+                        showToast('error', data.message);
+                    }
+                })
+                .catch(error => {
+                    showToast('error', 'An error occurred while deleting the offer.');
+                });
+
+                bootstrap.Modal.getInstance(document.getElementById('deleteModal')).hide();
+            }
+        });
+
+        function toggleOfferStatus(id, currentStatus) {
+            fetch('@Url.Action("ToggleOfferStatus")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                },
+                body: JSON.stringify({ id: id })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('success', data.message);
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1500);
+                } else {
+                    showToast('error', data.message);
+                }
+            })
+            .catch(error => {
+                showToast('error', 'An error occurred while updating the offer status.');
+            });
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(function() {
+                showToast('success', 'Offer code copied to clipboard!');
+            }, function() {
+                showToast('error', 'Failed to copy offer code.');
+            });
+        }
+
+        function copyOfferDetails() {
+            const details = `Offer: @Model.Name\nCode: @Model.Code\nType: @Model.Type\nValue: @(Model.Type == OPROZ_Main.Models.OfferType.Percentage ? Model.Value + "%" : Model.Type == OPROZ_Main.Models.OfferType.FixedAmount ? "$" + Model.Value.ToString("N2") : Model.Value + " month(s)")\nValid: @Model.StartDate.ToString("MMM dd, yyyy") - @Model.EndDate.ToString("MMM dd, yyyy")`;
+            
+            navigator.clipboard.writeText(details).then(function() {
+                showToast('success', 'Offer details copied to clipboard!');
+            }, function() {
+                showToast('error', 'Failed to copy offer details.');
+            });
+        }
+
+        function showToast(type, message) {
+            const toastHtml = `
+                <div class="toast align-items-center text-white bg-${type === 'success' ? 'success' : 'danger'} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex">
+                        <div class="toast-body">${message}</div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                </div>
+            `;
+            
+            let toastContainer = document.getElementById('toast-container');
+            if (!toastContainer) {
+                toastContainer = document.createElement('div');
+                toastContainer.id = 'toast-container';
+                toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
+                toastContainer.style.zIndex = '1055';
+                document.body.appendChild(toastContainer);
+            }
+            
+            toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+            const toastElement = toastContainer.lastElementChild;
+            const toast = new bootstrap.Toast(toastElement);
+            toast.show();
+            
+            toastElement.addEventListener('hidden.bs.toast', () => {
+                toastElement.remove();
+            });
+        }
+    </script>
+}
