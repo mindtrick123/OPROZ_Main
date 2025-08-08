@@ -6,7 +6,7 @@ using OPROZ_Main.ViewModels;
 
 namespace OPROZ_Main.Controllers
 {
-    [Route("Admin/[controller]")]
+    [Route("Admin/Offers")]
     public class OffersController : AdminControllerBase
     {
         private readonly ApplicationDbContext _context;

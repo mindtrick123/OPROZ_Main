@@ -6,7 +6,7 @@ using OPROZ_Main.ViewModels;
 
 namespace OPROZ_Main.Controllers
 {
-    [Route("Admin/[controller]")]
+    [Route("Admin/Services")]
     public class ServicesController : AdminControllerBase
     {
         private readonly ApplicationDbContext _context;
@@ -19,6 +19,8 @@ namespace OPROZ_Main.Controllers
         }
 
         // GET: Admin/Services
+        [HttpGet]
+        [Route("")]
         public async Task<IActionResult> Index()
         {
             var services = await _context.Services
@@ -30,6 +32,8 @@ namespace OPROZ_Main.Controllers
         }
 
         // GET: Admin/Services/Details/5
+        [HttpGet]
+        [Route("Details/{id:int}")]
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -52,6 +56,8 @@ namespace OPROZ_Main.Controllers
         }
 
         // GET: Admin/Services/Create
+        [HttpGet]
+        [Route("Create")]
         public IActionResult Create()
         {
             var viewModel = new ServiceFormViewModel();
@@ -60,6 +66,7 @@ namespace OPROZ_Main.Controllers
 
         // POST: Admin/Services/Create
         [HttpPost]
+        [Route("Create")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(ServiceFormViewModel viewModel)
         {
@@ -90,6 +97,8 @@ namespace OPROZ_Main.Controllers
         }
 
         // GET: Admin/Services/Edit/5
+        [HttpGet]
+        [Route("Edit/{id:int}")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -122,6 +131,7 @@ namespace OPROZ_Main.Controllers
 
         // POST: Admin/Services/Edit/5
         [HttpPost]
+        [Route("Edit/{id:int}")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, ServiceFormViewModel viewModel)
         {
@@ -173,6 +183,8 @@ namespace OPROZ_Main.Controllers
         }
 
         // GET: Admin/Services/Delete/5
+        [HttpGet]
+        [Route("Delete/{id:int}")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -194,7 +206,9 @@ namespace OPROZ_Main.Controllers
         }
 
         // POST: Admin/Services/Delete/5
-        [HttpPost, ActionName("Delete")]
+        [HttpPost]
+        [Route("Delete/{id:int}")]
+        [ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
