@@ -1,0 +1,50 @@
+@{
+    ViewData["Title"] = "Registration Confirmation";
+}
+
+<section class="py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <div class="card shadow">
+                    <div class="card-body p-5 text-center">
+                        <div class="mb-4">
+                            <i class="fas fa-check-circle fa-4x text-success"></i>
+                        </div>
+                        
+                        <h2 class="fw-bold mb-3">Registration Successful!</h2>
+                        <p class="text-muted mb-4">
+                            Thank you for registering with OPROZ. We've sent a verification email to your email address.
+                        </p>
+                        
+                        <div class="alert alert-info">
+                            <h6><i class="fas fa-envelope me-2"></i>Check Your Email</h6>
+                            <p class="mb-0">
+                                Please check your email and click the verification link to activate your account. 
+                                You'll need to verify your email before you can log in.
+                            </p>
+                        </div>
+                        
+                        <div class="alert alert-warning">
+                            <h6><i class="fas fa-exclamation-triangle me-2"></i>Can't Find the Email?</h6>
+                            <ul class="mb-0 text-start">
+                                <li>Check your spam/junk folder</li>
+                                <li>Make sure you entered the correct email address</li>
+                                <li>Wait a few minutes for the email to arrive</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="d-grid gap-2 mt-4">
+                            <a href="@Url.Action("Login", "Account")" class="btn btn-primary">
+                                <i class="fas fa-sign-in-alt me-2"></i>Go to Login Page
+                            </a>
+                            <a href="@Url.Action("Index", "Home")" class="btn btn-outline-secondary">
+                                <i class="fas fa-home me-2"></i>Return to Home
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
