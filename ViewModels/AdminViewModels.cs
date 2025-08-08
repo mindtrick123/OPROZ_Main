@@ -284,4 +284,108 @@ namespace OPROZ_Main.ViewModels
         [Compare("NewPassword", ErrorMessage = "The password and confirmation password do not match.")]
         public string ConfirmPassword { get; set; } = string.Empty;
     }
+
+    // System Settings ViewModels
+    public class SystemSettingsViewModel
+    {
+        [Display(Name = "Application Name")]
+        public string ApplicationName { get; set; } = string.Empty;
+
+        [Display(Name = "Application Version")]
+        public string ApplicationVersion { get; set; } = string.Empty;
+
+        [Display(Name = "Maintenance Mode")]
+        public bool MaintenanceMode { get; set; }
+
+        [Display(Name = "Allow New Registrations")]
+        public bool AllowRegistration { get; set; }
+
+        [Display(Name = "Require Email Confirmation")]
+        public bool RequireEmailConfirmation { get; set; }
+
+        [Display(Name = "Max Users Per Company")]
+        [Range(1, 1000)]
+        public int MaxUsersPerCompany { get; set; }
+
+        [Display(Name = "Session Timeout (Minutes)")]
+        [Range(5, 720)]
+        public int SessionTimeoutMinutes { get; set; }
+
+        [Display(Name = "SMTP Server")]
+        public string SmtpServer { get; set; } = string.Empty;
+
+        [Display(Name = "SMTP Port")]
+        [Range(1, 65535)]
+        public int SmtpPort { get; set; }
+
+        [Display(Name = "SMTP Username")]
+        public string SmtpUsername { get; set; } = string.Empty;
+
+        [Display(Name = "SMTP Password")]
+        [DataType(DataType.Password)]
+        public string SmtpPassword { get; set; } = string.Empty;
+
+        [Display(Name = "Use SSL")]
+        public bool SmtpUseSSL { get; set; }
+
+        [Display(Name = "Razorpay Key ID")]
+        public string RazorpayKeyId { get; set; } = string.Empty;
+
+        [Display(Name = "Razorpay Key Secret")]
+        [DataType(DataType.Password)]
+        public string RazorpayKeySecret { get; set; } = string.Empty;
+
+        [Display(Name = "Enable Automatic Backup")]
+        public bool BackupEnabled { get; set; }
+
+        [Display(Name = "Backup Interval (Hours)")]
+        [Range(1, 168)]
+        public int BackupIntervalHours { get; set; }
+
+        [Display(Name = "Log Level")]
+        public string LogLevel { get; set; } = string.Empty;
+    }
+
+    // Notification ViewModels
+    public class NotificationManagementViewModel
+    {
+        public List<NotificationItem> RecentNotifications { get; set; } = new();
+        public NotificationSettings NotificationSettings { get; set; } = new();
+    }
+
+    public class NotificationItem
+    {
+        public int Id { get; set; }
+        public string Title { get; set; } = string.Empty;
+        public string Message { get; set; } = string.Empty;
+        public string Type { get; set; } = string.Empty;
+        public bool IsRead { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public string? UserId { get; set; }
+        public string? UserName { get; set; }
+    }
+
+    public class NotificationSettings
+    {
+        [Display(Name = "Email Notifications")]
+        public bool EmailNotifications { get; set; }
+
+        [Display(Name = "Push Notifications")]
+        public bool PushNotifications { get; set; }
+
+        [Display(Name = "SMS Notifications")]
+        public bool SmsNotifications { get; set; }
+
+        [Display(Name = "New User Notifications")]
+        public bool NewUserNotifications { get; set; }
+
+        [Display(Name = "Payment Notifications")]
+        public bool PaymentNotifications { get; set; }
+
+        [Display(Name = "System Notifications")]
+        public bool SystemNotifications { get; set; }
+
+        [Display(Name = "Marketing Notifications")]
+        public bool MarketingNotifications { get; set; }
+    }
 }

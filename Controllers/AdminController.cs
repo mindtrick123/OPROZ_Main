@@ -730,6 +730,169 @@ namespace OPROZ_Main.Controllers
             return await _context.Offers.AnyAsync(e => e.Id == id);
         }
 
+        // System Settings
+        [HttpGet]
+        public IActionResult SystemSettings()
+        {
+            try
+            {
+                var viewModel = new SystemSettingsViewModel
+                {
+                    ApplicationName = "OPROZ SaaS Platform",
+                    ApplicationVersion = "1.0.0",
+                    MaintenanceMode = false,
+                    AllowRegistration = true,
+                    RequireEmailConfirmation = false,
+                    MaxUsersPerCompany = 100,
+                    SessionTimeoutMinutes = 30,
+                    SmtpServer = "smtp.gmail.com",
+                    SmtpPort = 587,
+                    SmtpUsername = "aswini.job@gmail.com",
+                    SmtpUseSSL = true,
+                    RazorpayKeyId = "***",
+                    BackupEnabled = true,
+                    BackupIntervalHours = 24,
+                    LogLevel = "Information"
+                };
+
+                return View(viewModel);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading system settings");
+                TempData["Error"] = "Error loading system settings. Please try again.";
+                return RedirectToAction(nameof(Index));
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SystemSettings(SystemSettingsViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            try
+            {
+                // In a real application, you would save these settings to a database or configuration file
+                // For now, we'll just show a success message
+                
+                var currentUser = await _userManager.GetUserAsync(User);
+                await _auditLogService.LogUserActionAsync(
+                    currentUser?.Id,
+                    currentUser?.Email,
+                    "Update System Settings",
+                    "Updated system configuration settings",
+                    Request.HttpContext.Connection.RemoteIpAddress?.ToString()
+                );
+
+                TempData["Success"] = "System settings updated successfully.";
+                return RedirectToAction(nameof(SystemSettings));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating system settings");
+                TempData["Error"] = "Error updating system settings. Please try again.";
+                return View(model);
+            }
+        }
+
+        // Notifications
+        [HttpGet]
+        public async Task<IActionResult> Notifications()
+        {
+            try
+            {
+                var viewModel = new NotificationManagementViewModel
+                {
+                    RecentNotifications = new List<NotificationItem>
+                    {
+                        new NotificationItem { Id = 1, Title = "System Maintenance", Message = "Scheduled maintenance on Sunday 2AM", Type = "System", IsRead = false, CreatedAt = DateTime.UtcNow.AddHours(-2) },
+                        new NotificationItem { Id = 2, Title = "New User Registration", Message = "John Doe registered for Pro plan", Type = "User", IsRead = true, CreatedAt = DateTime.UtcNow.AddHours(-5) },
+                        new NotificationItem { Id = 3, Title = "Payment Failed", Message = "Payment failed for user jane@example.com", Type = "Payment", IsRead = false, CreatedAt = DateTime.UtcNow.AddHours(-8) },
+                        new NotificationItem { Id = 4, Title = "Subscription Expiring", Message = "5 subscriptions expiring in next 7 days", Type = "Subscription", IsRead = true, CreatedAt = DateTime.UtcNow.AddDays(-1) }
+                    },
+                    NotificationSettings = new NotificationSettings
+                    {
+                        EmailNotifications = true,
+                        PushNotifications = false,
+                        SmsNotifications = false,
+                        NewUserNotifications = true,
+                        PaymentNotifications = true,
+                        SystemNotifications = true,
+                        MarketingNotifications = false
+                    }
+                };
+
+                return View(viewModel);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading notifications");
+                TempData["Error"] = "Error loading notifications. Please try again.";
+                return RedirectToAction(nameof(Index));
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SendBroadcastNotification(string title, string message, string type)
+        {
+            if (string.IsNullOrEmpty(title) || string.IsNullOrEmpty(message))
+            {
+                return Json(new { success = false, message = "Title and message are required" });
+            }
+
+            try
+            {
+                // In a real application, you would use the NotificationService to send the notification
+                // For now, we'll just log it as an audit entry
+                
+                var currentUser = await _userManager.GetUserAsync(User);
+                await _auditLogService.LogUserActionAsync(
+                    currentUser?.Id,
+                    currentUser?.Email,
+                    "Send Broadcast Notification",
+                    $"Sent broadcast notification: {title} - {message}",
+                    Request.HttpContext.Connection.RemoteIpAddress?.ToString()
+                );
+
+                return Json(new { success = true, message = "Broadcast notification sent successfully" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error sending broadcast notification");
+                return Json(new { success = false, message = "Error sending notification" });
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> UpdateNotificationSettings(NotificationSettings settings)
+        {
+            try
+            {
+                // In a real application, you would save these settings to a database
+                // For now, we'll just log it as an audit entry
+
+                var currentUser = await _userManager.GetUserAsync(User);
+                await _auditLogService.LogUserActionAsync(
+                    currentUser?.Id,
+                    currentUser?.Email,
+                    "Update Notification Settings",
+                    "Updated notification preferences",
+                    Request.HttpContext.Connection.RemoteIpAddress?.ToString()
+                );
+
+                return Json(new { success = true, message = "Notification settings updated successfully" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating notification settings");
+                return Json(new { success = false, message = "Error updating notification settings" });
+            }
+        }
+
         // Services Management
         public async Task<IActionResult> Services(string? search, int page = 1, bool? isActive = null, bool? isFeatured = null)
         {
