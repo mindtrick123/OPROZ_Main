@@ -1,0 +1,350 @@
+@model Company
+@{
+    ViewData["Title"] = "Create Company";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<!-- Page Title -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="page-title">Create New Company</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="@Url.Action("Index", "Admin")">Admin</a></li>
+                <li class="breadcrumb-item"><a href="@Url.Action("Companies")">Companies</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Create</li>
+            </ol>
+        </nav>
+    </div>
+    <div>
+        <a href="@Url.Action("Companies")" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Back to List
+        </a>
+    </div>
+</div>
+
+<!-- Form Card -->
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-building me-2"></i>Company Information
+                </h5>
+            </div>
+            <div class="card-body">
+                <form asp-action="CreateCompany" method="post" id="companyForm" novalidate>
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger" style="display: none;"></div>
+
+                    <!-- Basic Information Section -->
+                    <div class="mb-4">
+                        <h6 class="text-primary border-bottom pb-2 mb-3">
+                            <i class="bi bi-info-circle me-1"></i>Basic Information
+                        </h6>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="Name" class="form-label required">Company Name</label>
+                                    <input asp-for="Name" class="form-control" placeholder="Enter company name" />
+                                    <span asp-validation-for="Name" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="Website" class="form-label">Website</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-globe"></i></span>
+                                        <input asp-for="Website" class="form-control" placeholder="https://example.com" />
+                                    </div>
+                                    <span asp-validation-for="Website" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Description" class="form-label">Description</label>
+                            <textarea asp-for="Description" class="form-control" rows="3" 
+                                      placeholder="Brief description of the company..."></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <!-- Contact Information Section -->
+                    <div class="mb-4">
+                        <h6 class="text-primary border-bottom pb-2 mb-3">
+                            <i class="bi bi-telephone me-1"></i>Contact Information
+                        </h6>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="Phone" class="form-label">Phone Number</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-telephone"></i></span>
+                                        <input asp-for="Phone" class="form-control" placeholder="+1 (555) 123-4567" />
+                                    </div>
+                                    <span asp-validation-for="Phone" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="PostalCode" class="form-label">Postal Code</label>
+                                    <input asp-for="PostalCode" class="form-control" placeholder="Enter postal code" />
+                                    <span asp-validation-for="PostalCode" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Address" class="form-label">Street Address</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
+                                <input asp-for="Address" class="form-control" placeholder="Enter street address" />
+                            </div>
+                            <span asp-validation-for="Address" class="text-danger"></span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label asp-for="City" class="form-label">City</label>
+                                    <input asp-for="City" class="form-control" placeholder="Enter city" />
+                                    <span asp-validation-for="City" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label asp-for="State" class="form-label">State/Province</label>
+                                    <input asp-for="State" class="form-control" placeholder="Enter state" />
+                                    <span asp-validation-for="State" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label asp-for="Country" class="form-label">Country</label>
+                                    <select asp-for="Country" class="form-select">
+                                        <option value="">Select country</option>
+                                        <option value="United States">United States</option>
+                                        <option value="Canada">Canada</option>
+                                        <option value="United Kingdom">United Kingdom</option>
+                                        <option value="Australia">Australia</option>
+                                        <option value="Germany">Germany</option>
+                                        <option value="France">France</option>
+                                        <option value="Japan">Japan</option>
+                                        <option value="India">India</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                    <span asp-validation-for="Country" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Settings Section -->
+                    <div class="mb-4">
+                        <h6 class="text-primary border-bottom pb-2 mb-3">
+                            <i class="bi bi-gear me-1"></i>Settings
+                        </h6>
+                        
+                        <div class="form-check">
+                            <input asp-for="IsActive" class="form-check-input" type="checkbox" checked />
+                            <label class="form-check-label" asp-for="IsActive">
+                                Active Company
+                            </label>
+                            <div class="form-text">Inactive companies will have limited access to the platform</div>
+                        </div>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="d-flex gap-2 justify-content-end">
+                        <a href="@Url.Action("Companies")" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-circle me-2"></i>Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary" id="submitBtn">
+                            <i class="bi bi-check-circle me-2"></i>Create Company
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help/Info Sidebar -->
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-lightbulb me-2"></i>Quick Tips
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <h6><i class="bi bi-check-circle text-success me-1"></i>Required Fields</h6>
+                    <p class="small text-muted">Only company name is required. All other fields are optional but recommended for better organization.</p>
+                </div>
+                
+                <div class="mb-3">
+                    <h6><i class="bi bi-globe text-info me-1"></i>Website Format</h6>
+                    <p class="small text-muted">Include the full URL with http:// or https:// for proper linking.</p>
+                </div>
+                
+                <div class="mb-3">
+                    <h6><i class="bi bi-people text-warning me-1"></i>Company Status</h6>
+                    <p class="small text-muted">Inactive companies will have restricted access. You can change this later.</p>
+                </div>
+
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i>
+                    <small>After creating the company, you can assign users to it from the User Management section.</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        $(document).ready(function() {
+            // Form validation setup
+            $('#companyForm').validate({
+                rules: {
+                    Name: {
+                        required: true,
+                        minlength: 2,
+                        maxlength: 200
+                    },
+                    Website: {
+                        url: true,
+                        maxlength: 200
+                    },
+                    Description: {
+                        maxlength: 500
+                    },
+                    Phone: {
+                        maxlength: 20
+                    },
+                    Address: {
+                        maxlength: 200
+                    },
+                    City: {
+                        maxlength: 100
+                    },
+                    State: {
+                        maxlength: 100
+                    },
+                    PostalCode: {
+                        maxlength: 20
+                    },
+                    Country: {
+                        maxlength: 100
+                    }
+                },
+                messages: {
+                    Name: {
+                        required: "Company name is required",
+                        minlength: "Company name must be at least 2 characters",
+                        maxlength: "Company name cannot exceed 200 characters"
+                    },
+                    Website: {
+                        url: "Please enter a valid URL (e.g., https://example.com)"
+                    }
+                },
+                errorElement: "span",
+                errorClass: "text-danger",
+                highlight: function(element) {
+                    $(element).addClass("is-invalid");
+                },
+                unhighlight: function(element) {
+                    $(element).removeClass("is-invalid");
+                }
+            });
+
+            // Auto-format website URL
+            $('#Website').on('blur', function() {
+                let url = $(this).val().trim();
+                if (url && !url.match(/^https?:\/\//)) {
+                    $(this).val('https://' + url);
+                }
+            });
+
+            // Phone number formatting
+            $('#Phone').on('input', function() {
+                let value = $(this).val().replace(/\D/g, '');
+                if (value.length >= 10) {
+                    let formatted = value.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
+                    if (value.length > 10) {
+                        formatted = '+' + value.substr(0, value.length - 10) + ' ' + formatted;
+                    }
+                    $(this).val(formatted);
+                }
+            });
+
+            // Form submission handling
+            $('#companyForm').on('submit', function(e) {
+                if ($(this).valid()) {
+                    $('#submitBtn').prop('disabled', true)
+                                   .html('<span class="spinner-border spinner-border-sm me-2"></span>Creating...');
+                    showLoading();
+                }
+            });
+
+            // Real-time validation feedback
+            $('#Name').on('input', function() {
+                if ($(this).val().trim().length > 0) {
+                    $(this).removeClass('is-invalid').addClass('is-valid');
+                } else {
+                    $(this).removeClass('is-valid').addClass('is-invalid');
+                }
+            });
+        });
+
+        // Character counter for description
+        $('#Description').on('input', function() {
+            const maxLength = 500;
+            const currentLength = $(this).val().length;
+            const remaining = maxLength - currentLength;
+            
+            if (!$('#char-counter').length) {
+                $(this).after(`<small id="char-counter" class="form-text text-muted"></small>`);
+            }
+            
+            $('#char-counter').text(`${remaining} characters remaining`)
+                              .toggleClass('text-danger', remaining < 50)
+                              .toggleClass('text-warning', remaining < 100 && remaining >= 50);
+        });
+    </script>
+}
+
+<style>
+    .required::after {
+        content: " *";
+        color: #dc3545;
+    }
+    
+    .form-check-input:checked {
+        background-color: #198754;
+        border-color: #198754;
+    }
+    
+    .is-valid {
+        border-color: #198754;
+    }
+    
+    .is-invalid {
+        border-color: #dc3545;
+    }
+    
+    .input-group-text {
+        background-color: #f8f9fa;
+        border-color: #ced4da;
+    }
+    
+    .alert-info {
+        background-color: #cff4fc;
+        border-color: #b6effb;
+        color: #055160;
+    }
+</style>

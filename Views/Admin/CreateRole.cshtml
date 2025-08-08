@@ -1,0 +1,384 @@
+@{
+    ViewData["Title"] = "Create Role";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<!-- Page Title -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="page-title">Create New Role</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="@Url.Action("Index", "Admin")">Admin</a></li>
+                <li class="breadcrumb-item"><a href="@Url.Action("Roles")">Roles</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Create</li>
+            </ol>
+        </nav>
+    </div>
+    <div>
+        <a href="@Url.Action("Roles")" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Back to List
+        </a>
+    </div>
+</div>
+
+<!-- Form Card -->
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-shield-plus me-2"></i>Role Information
+                </h5>
+            </div>
+            <div class="card-body">
+                <form asp-action="CreateRole" method="post" id="roleForm" novalidate>
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle me-2"></i>
+                        <strong>Note:</strong> Role names should be descriptive and follow a consistent naming convention. 
+                        They cannot be changed after creation, so choose carefully.
+                    </div>
+
+                    <!-- Basic Information Section -->
+                    <div class="mb-4">
+                        <h6 class="text-primary border-bottom pb-2 mb-3">
+                            <i class="bi bi-info-circle me-1"></i>Basic Information
+                        </h6>
+                        
+                        <div class="mb-3">
+                            <label for="name" class="form-label required">Role Name</label>
+                            <input type="text" class="form-control" id="name" name="name" 
+                                   placeholder="Enter role name (e.g., ContentManager, Viewer)" 
+                                   maxlength="50" required />
+                            <div class="form-text">
+                                Use a descriptive name that clearly indicates the role's purpose. 
+                                Avoid spaces and special characters.
+                            </div>
+                            <span class="text-danger" id="nameError"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control" id="description" name="description" rows="3" 
+                                      placeholder="Describe the purpose and responsibilities of this role..." 
+                                      maxlength="500"></textarea>
+                            <div class="form-text">
+                                Provide a clear description of what this role is intended for and what permissions it should have.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Permission Guidelines Section -->
+                    <div class="mb-4">
+                        <h6 class="text-primary border-bottom pb-2 mb-3">
+                            <i class="bi bi-shield-check me-1"></i>Permission Guidelines
+                        </h6>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h6 class="card-title text-success">
+                                            <i class="bi bi-check-circle me-1"></i>Recommended Practices
+                                        </h6>
+                                        <ul class="card-text small mb-0">
+                                            <li>Follow principle of least privilege</li>
+                                            <li>Use descriptive, consistent naming</li>
+                                            <li>Group related permissions logically</li>
+                                            <li>Document role purposes clearly</li>
+                                            <li>Regular review and audit</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h6 class="card-title text-warning">
+                                            <i class="bi bi-exclamation-triangle me-1"></i>Security Notes
+                                        </h6>
+                                        <ul class="card-text small mb-0">
+                                            <li>Avoid overly broad permissions</li>
+                                            <li>Don't duplicate existing system roles</li>
+                                            <li>Consider user workflow requirements</li>
+                                            <li>Test role permissions thoroughly</li>
+                                            <li>Monitor role usage patterns</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="d-flex gap-2 justify-content-end">
+                        <a href="@Url.Action("Roles")" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-circle me-2"></i>Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary" id="submitBtn">
+                            <i class="bi bi-check-circle me-2"></i>Create Role
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help/Info Sidebar -->
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-lightbulb me-2"></i>Role Creation Guide
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <h6><i class="bi bi-shield text-primary me-1"></i>System Roles</h6>
+                    <p class="small text-muted">
+                        The system includes built-in roles (Admin, Manager, User, Support) that handle common scenarios. 
+                        Create custom roles only when these don't meet your specific needs.
+                    </p>
+                </div>
+                
+                <div class="mb-3">
+                    <h6><i class="bi bi-people text-info me-1"></i>Role Assignment</h6>
+                    <p class="small text-muted">
+                        After creating a role, you can assign it to users from the User Management section. 
+                        Users can have multiple roles.
+                    </p>
+                </div>
+                
+                <div class="mb-3">
+                    <h6><i class="bi bi-gear text-warning me-1"></i>Permission Management</h6>
+                    <p class="small text-muted">
+                        Role permissions are managed through the application's authorization system. 
+                        Contact your system administrator for specific permission configurations.
+                    </p>
+                </div>
+
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <small>
+                        <strong>Important:</strong> Role names cannot be changed after creation. 
+                        Choose a name that will remain relevant as your system grows.
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Examples Card -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-list-ul me-2"></i>Example Roles
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-2">
+                    <strong class="text-primary">ContentEditor</strong>
+                    <br><small class="text-muted">Can create and edit content but not delete</small>
+                </div>
+                <div class="mb-2">
+                    <strong class="text-success">Reviewer</strong>
+                    <br><small class="text-muted">Can review and approve content changes</small>
+                </div>
+                <div class="mb-2">
+                    <strong class="text-info">Analyst</strong>
+                    <br><small class="text-muted">Read-only access to reports and analytics</small>
+                </div>
+                <div class="mb-2">
+                    <strong class="text-warning">CustomerService</strong>
+                    <br><small class="text-muted">Can handle customer queries and basic support</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Form validation
+            $('#roleForm').on('submit', function(e) {
+                e.preventDefault();
+                
+                const name = $('#name').val().trim();
+                const description = $('#description').val().trim();
+                
+                // Clear previous errors
+                $('.text-danger').text('');
+                $('.is-invalid').removeClass('is-invalid');
+                
+                let isValid = true;
+                
+                // Validate name
+                if (!name) {
+                    $('#nameError').text('Role name is required.');
+                    $('#name').addClass('is-invalid');
+                    isValid = false;
+                } else if (name.length < 2) {
+                    $('#nameError').text('Role name must be at least 2 characters long.');
+                    $('#name').addClass('is-invalid');
+                    isValid = false;
+                } else if (!/^[a-zA-Z][a-zA-Z0-9_-]*$/.test(name)) {
+                    $('#nameError').text('Role name must start with a letter and contain only letters, numbers, hyphens, and underscores.');
+                    $('#name').addClass('is-invalid');
+                    isValid = false;
+                } else if (['Admin', 'Manager', 'User', 'Support'].includes(name)) {
+                    $('#nameError').text('This role name is reserved for system roles.');
+                    $('#name').addClass('is-invalid');
+                    isValid = false;
+                }
+                
+                if (!isValid) {
+                    return false;
+                }
+                
+                // Submit form
+                submitForm(name, description);
+            });
+
+            // Real-time validation for name
+            $('#name').on('input', function() {
+                const name = $(this).val().trim();
+                const errorElement = $('#nameError');
+                
+                if (name.length === 0) {
+                    $(this).removeClass('is-valid is-invalid');
+                    errorElement.text('');
+                } else if (name.length < 2) {
+                    $(this).removeClass('is-valid').addClass('is-invalid');
+                    errorElement.text('Too short');
+                } else if (!/^[a-zA-Z][a-zA-Z0-9_-]*$/.test(name)) {
+                    $(this).removeClass('is-valid').addClass('is-invalid');
+                    errorElement.text('Invalid characters');
+                } else if (['Admin', 'Manager', 'User', 'Support'].includes(name)) {
+                    $(this).removeClass('is-valid').addClass('is-invalid');
+                    errorElement.text('Reserved name');
+                } else {
+                    $(this).removeClass('is-invalid').addClass('is-valid');
+                    errorElement.text('');
+                }
+            });
+
+            // Character counter for description
+            $('#description').on('input', function() {
+                const maxLength = 500;
+                const currentLength = $(this).val().length;
+                const remaining = maxLength - currentLength;
+                
+                if (!$('#desc-counter').length) {
+                    $(this).after(`<small id="desc-counter" class="form-text text-muted"></small>`);
+                }
+                
+                $('#desc-counter').text(`${remaining} characters remaining`)
+                                  .toggleClass('text-danger', remaining < 50)
+                                  .toggleClass('text-warning', remaining < 100 && remaining >= 50);
+            });
+
+            // Auto-format role name (PascalCase)
+            $('#name').on('blur', function() {
+                let value = $(this).val().trim();
+                if (value) {
+                    // Convert to PascalCase
+                    value = value.replace(/[-_\s]+(.)?/g, (_, char) => char ? char.toUpperCase() : '')
+                                 .replace(/^(.)/, (_, char) => char.toUpperCase());
+                    $(this).val(value);
+                    $(this).trigger('input'); // Trigger validation
+                }
+            });
+        });
+
+        async function submitForm(name, description) {
+            $('#submitBtn').prop('disabled', true)
+                           .html('<span class="spinner-border spinner-border-sm me-2"></span>Creating...');
+            showLoading();
+
+            try {
+                const response = await fetch('@Url.Action("CreateRole")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val() || ''
+                    },
+                    body: new URLSearchParams({
+                        name: name,
+                        description: description || ''
+                    })
+                });
+
+                if (response.ok) {
+                    showAlert('success', 'Role created successfully!');
+                    setTimeout(() => {
+                        window.location.href = '@Url.Action("Roles")';
+                    }, 1500);
+                } else {
+                    const errorText = await response.text();
+                    showAlert('error', 'Failed to create role. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('error', 'An error occurred while creating the role.');
+            } finally {
+                hideLoading();
+                $('#submitBtn').prop('disabled', false)
+                               .html('<i class="bi bi-check-circle me-2"></i>Create Role');
+            }
+        }
+
+        // Show alert messages
+        function showAlert(type, message) {
+            const alertHtml = `
+                <div class="alert alert-${type === 'error' ? 'danger' : 'success'} alert-dismissible fade show" role="alert">
+                    <i class="bi bi-${type === 'error' ? 'exclamation-triangle' : 'check-circle'} me-2"></i>
+                    <strong>${type === 'error' ? 'Error!' : 'Success!'}</strong> ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+            
+            // Insert at the top of the main content
+            const mainContent = document.querySelector('main .admin-content');
+            const firstChild = mainContent.firstElementChild;
+            const alertDiv = document.createElement('div');
+            alertDiv.innerHTML = alertHtml;
+            mainContent.insertBefore(alertDiv.firstElementChild, firstChild);
+        }
+    </script>
+}
+
+<style>
+    .required::after {
+        content: " *";
+        color: #dc3545;
+    }
+    
+    .is-valid {
+        border-color: #198754;
+    }
+    
+    .is-invalid {
+        border-color: #dc3545;
+    }
+    
+    .card.bg-light {
+        border: 1px solid #e9ecef;
+    }
+    
+    .alert-info {
+        background-color: #cff4fc;
+        border-color: #b6effb;
+        color: #055160;
+    }
+    
+    .alert-warning {
+        background-color: #fff3cd;
+        border-color: #ffecb5;
+        color: #664d03;
+    }
+    
+    .form-text {
+        font-size: 0.875rem;
+        color: #6c757d;
+    }
+</style>
