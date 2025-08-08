@@ -1,0 +1,188 @@
+@model OPROZ_Main.ViewModels.HelpQueriesViewModel
+@{
+    ViewData["Title"] = "My Support Tickets";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Dashboard")">Dashboard</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Support Tickets</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0"><i class="fas fa-ticket-alt"></i> My Support Tickets</h4>
+                    <a href="@Url.Action("SubmitHelpQuery", "Dashboard")" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> New Ticket
+                    </a>
+                </div>
+                <div class="card-body">
+                    @if (Model.HelpQueries.Any())
+                    {
+                        @foreach (var query in Model.HelpQueries)
+                        {
+                            <div class="card mb-3">
+                                <div class="card-header d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1">@query.Subject</h6>
+                                        <small class="text-muted">
+                                            Ticket #@query.Id • Created @query.CreatedAt.ToShortDateString()
+                                        </small>
+                                    </div>
+                                    <div class="d-flex flex-column align-items-end">
+                                        @switch (query.Status)
+                                        {
+                                            case QueryStatus.Pending:
+                                                <span class="badge bg-warning mb-1">Pending</span>
+                                                break;
+                                            case QueryStatus.Open:
+                                                <span class="badge bg-info mb-1">Open</span>
+                                                break;
+                                            case QueryStatus.InProgress:
+                                                <span class="badge bg-primary mb-1">In Progress</span>
+                                                break;
+                                            case QueryStatus.Resolved:
+                                                <span class="badge bg-success mb-1">Resolved</span>
+                                                break;
+                                            case QueryStatus.Closed:
+                                                <span class="badge bg-secondary mb-1">Closed</span>
+                                                break;
+                                        }
+                                        @switch (query.Priority)
+                                        {
+                                            case QueryPriority.Critical:
+                                                <span class="badge bg-danger">Critical</span>
+                                                break;
+                                            case QueryPriority.High:
+                                                <span class="badge bg-warning">High</span>
+                                                break;
+                                            case QueryPriority.Medium:
+                                                <span class="badge bg-info">Medium</span>
+                                                break;
+                                            case QueryPriority.Low:
+                                                <span class="badge bg-secondary">Low</span>
+                                                break;
+                                        }
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-8">
+                                            <p class="card-text">@query.Message</p>
+                                            @if (!string.IsNullOrEmpty(query.Category))
+                                            {
+                                                <p class="mb-1"><strong>Category:</strong> @query.Category</p>
+                                            }
+                                            @if (!string.IsNullOrEmpty(query.Phone))
+                                            {
+                                                <p class="mb-1"><strong>Phone:</strong> @query.Phone</p>
+                                            }
+                                        </div>
+                                        <div class="col-md-4">
+                                            @if (!string.IsNullOrEmpty(query.AdminResponse))
+                                            {
+                                                <div class="alert alert-light">
+                                                    <h6><i class="fas fa-reply"></i> Admin Response:</h6>
+                                                    <p class="mb-0">@query.AdminResponse</p>
+                                                    @if (query.ResolvedAt.HasValue)
+                                                    {
+                                                        <small class="text-muted">
+                                                            Resolved on @query.ResolvedAt.Value.ToString("MMM dd, yyyy")
+                                                        </small>
+                                                    }
+                                                </div>
+                                            }
+                                            else if (query.Status == QueryStatus.Pending)
+                                            {
+                                                <div class="alert alert-warning">
+                                                    <i class="fas fa-clock"></i> Waiting for admin response
+                                                </div>
+                                            }
+                                            else if (query.Status == QueryStatus.InProgress)
+                                            {
+                                                <div class="alert alert-info">
+                                                    <i class="fas fa-cog fa-spin"></i> Being processed by our team
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        
+                        <!-- Summary Statistics -->
+                        <div class="row mt-4">
+                            <div class="col-md-2">
+                                <div class="card text-center">
+                                    <div class="card-body py-2">
+                                        <h6 class="card-title text-warning">Pending</h6>
+                                        <h4 class="text-warning mb-0">@Model.HelpQueries.Count(q => q.Status == QueryStatus.Pending)</h4>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="card text-center">
+                                    <div class="card-body py-2">
+                                        <h6 class="card-title text-info">Open</h6>
+                                        <h4 class="text-info mb-0">@Model.HelpQueries.Count(q => q.Status == QueryStatus.Open)</h4>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="card text-center">
+                                    <div class="card-body py-2">
+                                        <h6 class="card-title text-primary">In Progress</h6>
+                                        <h4 class="text-primary mb-0">@Model.HelpQueries.Count(q => q.Status == QueryStatus.InProgress)</h4>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="card text-center">
+                                    <div class="card-body py-2">
+                                        <h6 class="card-title text-success">Resolved</h6>
+                                        <h4 class="text-success mb-0">@Model.HelpQueries.Count(q => q.Status == QueryStatus.Resolved)</h4>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="card text-center">
+                                    <div class="card-body py-2">
+                                        <h6 class="card-title text-secondary">Closed</h6>
+                                        <h4 class="text-secondary mb-0">@Model.HelpQueries.Count(q => q.Status == QueryStatus.Closed)</h4>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="card text-center">
+                                    <div class="card-body py-2">
+                                        <h6 class="card-title text-dark">Total</h6>
+                                        <h4 class="text-dark mb-0">@Model.HelpQueries.Count</h4>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <i class="fas fa-ticket-alt fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">No Support Tickets</h5>
+                            <p class="text-muted">You haven't submitted any support tickets yet.</p>
+                            <a href="@Url.Action("SubmitHelpQuery", "Dashboard")" class="btn btn-primary">
+                                <i class="fas fa-plus"></i> Submit Your First Ticket
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

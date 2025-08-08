@@ -40,11 +40,18 @@ namespace OPROZ_Main.Controllers
 
             if (ModelState.IsValid)
             {
+                // Check if user exists and email is confirmed
+                var user = await _userManager.FindByEmailAsync(model.Email);
+                if (user != null && !await _userManager.IsEmailConfirmedAsync(user))
+                {
+                    ModelState.AddModelError(string.Empty, "You must confirm your email before you can log in. Please check your email for the confirmation link.");
+                    return View(model);
+                }
+
                 var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: true);
 
                 if (result.Succeeded)
                 {
-                    var user = await _userManager.FindByEmailAsync(model.Email);
                     if (user != null)
                     {
                         user.LastLoginAt = DateTime.UtcNow;
@@ -302,7 +309,7 @@ namespace OPROZ_Main.Controllers
             }
             else
             {
-                return RedirectToAction(nameof(HomeController.Index), "Home");
+                return RedirectToAction("Index", "Dashboard");
             }
         }
     }

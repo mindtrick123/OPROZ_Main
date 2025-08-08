@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using OPROZ_Main.Models;
 
 namespace OPROZ_Main.ViewModels
 {
@@ -83,5 +84,60 @@ namespace OPROZ_Main.ViewModels
         public bool RememberMachine { get; set; }
 
         public bool RememberMe { get; set; }
+    }
+
+    // Dashboard ViewModels
+    public class DashboardViewModel
+    {
+        public ApplicationUser User { get; set; } = null!;
+        public List<PaymentHistory> PaymentHistories { get; set; } = new();
+        public List<HelpQuery> HelpQueries { get; set; } = new();
+        public PaymentHistory? ActiveSubscription { get; set; }
+    }
+
+    public class ProfileViewModel
+    {
+        public string FirstName { get; set; } = string.Empty;
+        public string LastName { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public bool IsEmailConfirmed { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime? LastLoginAt { get; set; }
+    }
+
+    public class PaymentHistoryViewModel
+    {
+        public List<PaymentHistory> PaymentHistories { get; set; } = new();
+    }
+
+    public class HelpQueriesViewModel
+    {
+        public List<HelpQuery> HelpQueries { get; set; } = new();
+    }
+
+    public class HelpQuerySubmissionViewModel
+    {
+        [Required]
+        [StringLength(200)]
+        [Display(Name = "Subject")]
+        public string Subject { get; set; } = string.Empty;
+
+        [Required]
+        [StringLength(2000)]
+        [Display(Name = "Message")]
+        [DataType(DataType.MultilineText)]
+        public string Message { get; set; } = string.Empty;
+
+        [StringLength(20)]
+        [Display(Name = "Phone Number")]
+        [Phone]
+        public string? Phone { get; set; }
+
+        [StringLength(100)]
+        [Display(Name = "Category")]
+        public string? Category { get; set; }
+
+        [Display(Name = "Priority")]
+        public QueryPriority Priority { get; set; } = QueryPriority.Medium;
     }
 }

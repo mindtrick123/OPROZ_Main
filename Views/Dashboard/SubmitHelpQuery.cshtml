@@ -1,0 +1,119 @@
+@model OPROZ_Main.ViewModels.HelpQuerySubmissionViewModel
+@{
+    ViewData["Title"] = "Submit Help Query";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Dashboard")">Dashboard</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Submit Help Query</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0"><i class="fas fa-headset"></i> Submit Help Query</h4>
+                    <p class="mb-0 text-muted">Get help from our support team</p>
+                </div>
+                <div class="card-body">
+                    <form asp-action="SubmitHelpQuery" method="post">
+                        @Html.AntiForgeryToken()
+                        
+                        <div class="mb-3">
+                            <label asp-for="Subject" class="form-label">Subject</label>
+                            <input asp-for="Subject" class="form-control" placeholder="Brief description of your issue">
+                            <span asp-validation-for="Subject" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Category" class="form-label">Category</label>
+                            <select asp-for="Category" class="form-select">
+                                <option value="">Select a category (optional)</option>
+                                <option value="Technical Support">Technical Support</option>
+                                <option value="Billing">Billing</option>
+                                <option value="Account">Account</option>
+                                <option value="Feature Request">Feature Request</option>
+                                <option value="Bug Report">Bug Report</option>
+                                <option value="General Inquiry">General Inquiry</option>
+                                <option value="Other">Other</option>
+                            </select>
+                            <span asp-validation-for="Category" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Priority" class="form-label">Priority</label>
+                            <select asp-for="Priority" class="form-select">
+                                <option value="@QueryPriority.Low">Low</option>
+                                <option value="@QueryPriority.Medium" selected>Medium</option>
+                                <option value="@QueryPriority.High">High</option>
+                                <option value="@QueryPriority.Critical">Critical</option>
+                            </select>
+                            <span asp-validation-for="Priority" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Phone" class="form-label">Phone Number</label>
+                            <input asp-for="Phone" class="form-control" placeholder="Your phone number (optional)">
+                            <span asp-validation-for="Phone" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Message" class="form-label">Message</label>
+                            <textarea asp-for="Message" class="form-control" rows="6" placeholder="Please describe your issue in detail. Include any error messages, steps to reproduce, or relevant information."></textarea>
+                            <span asp-validation-for="Message" class="text-danger"></span>
+                            <div class="form-text">Be as specific as possible to help us assist you better.</div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-paper-plane"></i> Submit Query
+                                </button>
+                                <a href="@Url.Action("Index", "Dashboard")" class="btn btn-secondary ms-2">
+                                    Cancel
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Help Information -->
+            <div class="card mt-4">
+                <div class="card-body">
+                    <h5><i class="fas fa-info-circle text-info"></i> Need immediate help?</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Response Time</h6>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-clock text-danger"></i> Critical: 1-2 hours</li>
+                                <li><i class="fas fa-clock text-warning"></i> High: 2-4 hours</li>
+                                <li><i class="fas fa-clock text-info"></i> Medium: 4-8 hours</li>
+                                <li><i class="fas fa-clock text-secondary"></i> Low: 24-48 hours</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Contact Information</h6>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-envelope"></i> support@oproz.com</li>
+                                <li><i class="fas fa-phone"></i> +91 (800) 123-4567</li>
+                                <li><i class="fas fa-clock"></i> Mon-Fri, 9 AM - 6 PM IST</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

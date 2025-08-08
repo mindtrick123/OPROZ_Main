@@ -1,0 +1,202 @@
+@model OPROZ_Main.ViewModels.DashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">Welcome, @Model.User.FirstName!</h1>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Profile Overview -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-user"></i> Profile Overview</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Name:</strong> @Model.User.FirstName @Model.User.LastName</p>
+                    <p><strong>Email:</strong> @Model.User.Email</p>
+                    <p><strong>Verification:</strong> 
+                        @if (Model.User.EmailConfirmed)
+                        {
+                            <span class="badge bg-success">Verified</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-warning">Pending</span>
+                        }
+                    </p>
+                    <p><strong>Member since:</strong> @Model.User.CreatedAt.ToString("MMM dd, yyyy")</p>
+                </div>
+                <div class="card-footer">
+                    <a href="@Url.Action("Profile", "Dashboard")" class="btn btn-outline-primary btn-sm">View Full Profile</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Active Subscription -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-crown"></i> Active Subscription</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.ActiveSubscription != null)
+                    {
+                        <p><strong>Plan:</strong> @Model.ActiveSubscription.SubscriptionPlan.Name</p>
+                        <p><strong>Type:</strong> @Model.ActiveSubscription.SubscriptionPlan.Type</p>
+                        <p><strong>Duration:</strong> @Model.ActiveSubscription.SubscriptionPlan.Duration</p>
+                        <p><strong>Expires:</strong> @Model.ActiveSubscription.SubscriptionEndDate?.ToString("MMM dd, yyyy")</p>
+                    }
+                    else
+                    {
+                        <p class="text-muted">No active subscription</p>
+                        <p>Choose a plan to get started with our services.</p>
+                    }
+                </div>
+                <div class="card-footer">
+                    @if (Model.ActiveSubscription != null)
+                    {
+                        <a href="#" class="btn btn-outline-success btn-sm">Manage Subscription</a>
+                    }
+                    else
+                    {
+                        <a href="@Url.Action("Services", "Home")" class="btn btn-success btn-sm">View Plans</a>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-bolt"></i> Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="@Url.Action("SubmitHelpQuery", "Dashboard")" class="btn btn-outline-info">
+                            <i class="fas fa-question-circle"></i> Submit Help Query
+                        </a>
+                        <a href="@Url.Action("PaymentHistory", "Dashboard")" class="btn btn-outline-info">
+                            <i class="fas fa-credit-card"></i> View Payment History
+                        </a>
+                        <a href="@Url.Action("HelpQueries", "Dashboard")" class="btn btn-outline-info">
+                            <i class="fas fa-headset"></i> My Support Tickets
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Recent Payment History -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-history"></i> Recent Payments</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.PaymentHistories.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Amount</th>
+                                        <th>Plan</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var payment in Model.PaymentHistories)
+                                    {
+                                        <tr>
+                                            <td>@payment.PaymentDate.ToString("MMM dd")</td>
+                                            <td>₹@payment.FinalAmount</td>
+                                            <td>@payment.SubscriptionPlan.Name</td>
+                                            <td>
+                                                <span class="badge bg-@(payment.Status == PaymentStatus.Success ? "success" : payment.Status == PaymentStatus.Pending ? "warning" : "danger")">
+                                                    @payment.Status
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted">No payment history available.</p>
+                    }
+                </div>
+                @if (Model.PaymentHistories.Any())
+                {
+                    <div class="card-footer">
+                        <a href="@Url.Action("PaymentHistory", "Dashboard")" class="btn btn-outline-primary btn-sm">View All</a>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Recent Help Queries -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-ticket-alt"></i> Recent Support Tickets</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.HelpQueries.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Subject</th>
+                                        <th>Status</th>
+                                        <th>Created</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var query in Model.HelpQueries)
+                                    {
+                                        <tr>
+                                            <td>@query.Subject</td>
+                                            <td>
+                                                <span class="badge bg-@(query.Status == QueryStatus.Resolved ? "success" : query.Status == QueryStatus.Pending ? "warning" : "info")">
+                                                    @query.Status
+                                                </span>
+                                            </td>
+                                            <td>@query.CreatedAt.ToString("MMM dd")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted">No support tickets yet.</p>
+                    }
+                </div>
+                @if (Model.HelpQueries.Any())
+                {
+                    <div class="card-footer">
+                        <a href="@Url.Action("HelpQueries", "Dashboard")" class="btn btn-outline-primary btn-sm">View All</a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+}

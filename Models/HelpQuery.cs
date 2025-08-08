@@ -4,6 +4,7 @@ namespace OPROZ_Main.Models
 {
     public enum QueryStatus
     {
+        Pending,
         Open,
         InProgress,
         Resolved,
@@ -45,7 +46,7 @@ namespace OPROZ_Main.Models
         public string? UserId { get; set; }
         public virtual ApplicationUser? User { get; set; }
 
-        public QueryStatus Status { get; set; } = QueryStatus.Open;
+        public QueryStatus Status { get; set; } = QueryStatus.Pending;
         public QueryPriority Priority { get; set; } = QueryPriority.Medium;
 
         [StringLength(100)]

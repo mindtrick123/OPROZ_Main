@@ -1,0 +1,176 @@
+@model OPROZ_Main.ViewModels.PaymentHistoryViewModel
+@{
+    ViewData["Title"] = "Payment History";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Dashboard")">Dashboard</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Payment History</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0"><i class="fas fa-credit-card"></i> Payment History</h4>
+                    <small class="text-muted">Total Payments: @Model.PaymentHistories.Count</small>
+                </div>
+                <div class="card-body">
+                    @if (Model.PaymentHistories.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Transaction ID</th>
+                                        <th>Date</th>
+                                        <th>Plan</th>
+                                        <th>Amount</th>
+                                        <th>Final Amount</th>
+                                        <th>Status</th>
+                                        <th>Method</th>
+                                        <th>Subscription Period</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var payment in Model.PaymentHistories)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <code>@payment.TransactionId</code>
+                                            </td>
+                                            <td>@payment.PaymentDate.ToString("MMM dd, yyyy")</td>
+                                            <td>
+                                                <div>
+                                                    <strong>@payment.SubscriptionPlan.Name</strong>
+                                                    <br>
+                                                    <small class="text-muted">@payment.SubscriptionPlan.Type - @payment.SubscriptionPlan.Duration</small>
+                                                </div>
+                                            </td>
+                                            <td>₹@payment.Amount</td>
+                                            <td>
+                                                <strong>₹@payment.FinalAmount</strong>
+                                                @if (payment.DiscountAmount.HasValue && payment.DiscountAmount > 0)
+                                                {
+                                                    <br>
+                                                    <small class="text-success">Discount: ₹@payment.DiscountAmount</small>
+                                                }
+                                            </td>
+                                            <td>
+                                                @switch (payment.Status)
+                                                {
+                                                    case PaymentStatus.Success:
+                                                        <span class="badge bg-success">Success</span>
+                                                        break;
+                                                    case PaymentStatus.Pending:
+                                                        <span class="badge bg-warning">Pending</span>
+                                                        break;
+                                                    case PaymentStatus.Failed:
+                                                        <span class="badge bg-danger">Failed</span>
+                                                        break;
+                                                    case PaymentStatus.Refunded:
+                                                        <span class="badge bg-info">Refunded</span>
+                                                        break;
+                                                    case PaymentStatus.Cancelled:
+                                                        <span class="badge bg-secondary">Cancelled</span>
+                                                        break;
+                                                }
+                                            </td>
+                                            <td>
+                                                @if (payment.Method.HasValue)
+                                                {
+                                                    @payment.Method
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">N/A</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                @if (payment.SubscriptionStartDate.HasValue && payment.SubscriptionEndDate.HasValue)
+                                                {
+                                                    <div>
+                                                        <small>
+                                                            From: @payment.SubscriptionStartDate.Value.ToString("MMM dd, yyyy")<br>
+                                                            To: @payment.SubscriptionEndDate.Value.ToString("MMM dd, yyyy")
+                                                        </small>
+                                                        @if (payment.SubscriptionEndDate > DateTime.UtcNow)
+                                                        {
+                                                            <br><span class="badge bg-success">Active</span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <br><span class="badge bg-secondary">Expired</span>
+                                                        }
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">N/A</span>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Summary Statistics -->
+                        <div class="row mt-4">
+                            <div class="col-md-3">
+                                <div class="card text-center">
+                                    <div class="card-body">
+                                        <h5 class="card-title text-success">Total Paid</h5>
+                                        <h3 class="text-success">₹@Model.PaymentHistories.Where(p => p.Status == PaymentStatus.Success).Sum(p => p.FinalAmount)</h3>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card text-center">
+                                    <div class="card-body">
+                                        <h5 class="card-title text-primary">Successful</h5>
+                                        <h3 class="text-primary">@Model.PaymentHistories.Count(p => p.Status == PaymentStatus.Success)</h3>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card text-center">
+                                    <div class="card-body">
+                                        <h5 class="card-title text-warning">Pending</h5>
+                                        <h3 class="text-warning">@Model.PaymentHistories.Count(p => p.Status == PaymentStatus.Pending)</h3>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card text-center">
+                                    <div class="card-body">
+                                        <h5 class="card-title text-danger">Failed</h5>
+                                        <h3 class="text-danger">@Model.PaymentHistories.Count(p => p.Status == PaymentStatus.Failed)</h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <i class="fas fa-credit-card fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">No Payment History</h5>
+                            <p class="text-muted">You haven't made any payments yet.</p>
+                            <a href="@Url.Action("Services", "Home")" class="btn btn-primary">
+                                <i class="fas fa-shopping-cart"></i> View Our Services
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

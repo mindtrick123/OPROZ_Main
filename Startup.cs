@@ -41,7 +41,7 @@ namespace OPROZ_Main
                 options.User.RequireUniqueEmail = true;
 
                 // Email confirmation
-                options.SignIn.RequireConfirmedEmail = false; // Set to true in production
+                options.SignIn.RequireConfirmedEmail = true; // Required for user verification
                 options.SignIn.RequireConfirmedPhoneNumber = false;
             })
             .AddEntityFrameworkStores<ApplicationDbContext>()
