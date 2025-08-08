@@ -160,6 +160,11 @@ namespace OPROZ_Main.Controllers
             var result = await _userManager.ConfirmEmailAsync(user, code);
             if (result.Succeeded)
             {
+                // Update our custom email confirmation tracking
+                user.EmailConfirmed = true;
+                user.EmailConfirmedAt = DateTime.UtcNow;
+                await _userManager.UpdateAsync(user);
+                
                 TempData["Message"] = "Thank you for confirming your email. You can now log in.";
             }
             else

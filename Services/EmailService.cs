@@ -2,6 +2,7 @@ using MailKit.Net.Smtp;
 using MailKit.Security;
 using MimeKit;
 using MimeKit.Text;
+using OPROZ_Main.Models;
 
 namespace OPROZ_Main.Services
 {
@@ -117,6 +118,105 @@ namespace OPROZ_Main.Services
 
             var supportEmail = _configuration["ApplicationSettings:SupportEmail"] ?? "support@oproz.com";
             await SendEmailAsync(supportEmail, emailSubject, emailBody);
+        }
+
+        public async Task SendPaymentSuccessEmailAsync(string toEmail, string userName, PaymentHistory paymentHistory)
+        {
+            var subject = "Payment Successful - Subscription Activated";
+            var body = $@"
+                <html>
+                <body style='font-family: Arial, sans-serif; line-height: 1.6; color: #333;'>
+                    <div style='max-width: 600px; margin: 0 auto; padding: 20px;'>
+                        <h2 style='color: #28a745;'>Payment Successful!</h2>
+                        <p>Dear {userName},</p>
+                        <p>Thank you for your payment. Your subscription has been successfully activated.</p>
+                        
+                        <div style='background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin: 20px 0;'>
+                            <h3 style='margin-top: 0; color: #007bff;'>Payment Details</h3>
+                            <p><strong>Transaction ID:</strong> {paymentHistory.TransactionId}</p>
+                            <p><strong>Plan:</strong> {paymentHistory.SubscriptionPlan?.Name ?? "N/A"}</p>
+                            <p><strong>Amount Paid:</strong> ₹{paymentHistory.FinalAmount:F2}</p>
+                            <p><strong>Payment Date:</strong> {paymentHistory.PaymentDate:dd MMM yyyy, HH:mm}</p>
+                            <p><strong>Subscription Period:</strong> {paymentHistory.SubscriptionStartDate:dd MMM yyyy} - {paymentHistory.SubscriptionEndDate:dd MMM yyyy}</p>
+                        </div>
+                        
+                        <p>You can now access all features included in your subscription plan.</p>
+                        <p>If you have any questions, feel free to contact our support team.</p>
+                        
+                        <p>Best regards,<br>OPROZ Team</p>
+                    </div>
+                </body>
+                </html>";
+
+            await SendEmailAsync(toEmail, subject, body);
+        }
+
+        public async Task SendPaymentFailureEmailAsync(string toEmail, string userName, string planName, decimal amount)
+        {
+            var subject = "Payment Failed - Please Try Again";
+            var body = $@"
+                <html>
+                <body style='font-family: Arial, sans-serif; line-height: 1.6; color: #333;'>
+                    <div style='max-width: 600px; margin: 0 auto; padding: 20px;'>
+                        <h2 style='color: #dc3545;'>Payment Failed</h2>
+                        <p>Dear {userName},</p>
+                        <p>We were unable to process your payment for the {planName} subscription plan.</p>
+                        
+                        <div style='background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin: 20px 0;'>
+                            <h3 style='margin-top: 0; color: #dc3545;'>Payment Details</h3>
+                            <p><strong>Plan:</strong> {planName}</p>
+                            <p><strong>Amount:</strong> ₹{amount:F2}</p>
+                            <p><strong>Status:</strong> Failed</p>
+                        </div>
+                        
+                        <p>Please check your payment method and try again. Common reasons for payment failure include:</p>
+                        <ul>
+                            <li>Insufficient balance</li>
+                            <li>Incorrect card details</li>
+                            <li>Card expired</li>
+                            <li>Bank security restrictions</li>
+                        </ul>
+                        
+                        <p><a href='#' style='background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block; margin: 10px 0;'>Try Again</a></p>
+                        
+                        <p>If you continue to experience issues, please contact our support team.</p>
+                        
+                        <p>Best regards,<br>OPROZ Team</p>
+                    </div>
+                </body>
+                </html>";
+
+            await SendEmailAsync(toEmail, subject, body);
+        }
+
+        public async Task SendPaymentPendingEmailAsync(string toEmail, string userName, string planName, decimal amount)
+        {
+            var subject = "Payment Pending - We're Processing Your Transaction";
+            var body = $@"
+                <html>
+                <body style='font-family: Arial, sans-serif; line-height: 1.6; color: #333;'>
+                    <div style='max-width: 600px; margin: 0 auto; padding: 20px;'>
+                        <h2 style='color: #ffc107;'>Payment Processing</h2>
+                        <p>Dear {userName},</p>
+                        <p>Your payment for the {planName} subscription is currently being processed.</p>
+                        
+                        <div style='background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin: 20px 0;'>
+                            <h3 style='margin-top: 0; color: #ffc107;'>Payment Details</h3>
+                            <p><strong>Plan:</strong> {planName}</p>
+                            <p><strong>Amount:</strong> ₹{amount:F2}</p>
+                            <p><strong>Status:</strong> Processing</p>
+                        </div>
+                        
+                        <p>This process usually takes a few minutes. You will receive another email once your payment is confirmed and your subscription is activated.</p>
+                        
+                        <p>If you don't receive confirmation within 24 hours, please contact our support team with your transaction details.</p>
+                        
+                        <p>Best regards,<br>OPROZ Team</p>
+                    </div>
+                </body>
+                </html>";
+
+            await SendEmailAsync(toEmail, subject, body);
         }
     }
 }

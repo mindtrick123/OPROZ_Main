@@ -19,6 +19,10 @@ namespace OPROZ_Main.Models
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? LastLoginAt { get; set; }
         public bool IsActive { get; set; } = true;
+        
+        // Email verification - using new to hide inherited EmailConfirmed
+        public new bool EmailConfirmed { get; set; } = false;
+        public DateTime? EmailConfirmedAt { get; set; }
 
         public virtual ICollection<PaymentHistory> PaymentHistories { get; set; } = new List<PaymentHistory>();
         public virtual ICollection<HelpQuery> HelpQueries { get; set; } = new List<HelpQuery>();

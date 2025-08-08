@@ -18,19 +18,22 @@ namespace OPROZ_Main.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IConfiguration _configuration;
         private readonly ILogger<PaymentController> _logger;
+        private readonly IEmailService _emailService;
 
         public PaymentController(
             ApplicationDbContext context,
             IRazorpayService razorpayService,
             UserManager<ApplicationUser> userManager,
             IConfiguration configuration,
-            ILogger<PaymentController> logger)
+            ILogger<PaymentController> logger,
+            IEmailService emailService)
         {
             _context = context;
             _razorpayService = razorpayService;
             _userManager = userManager;
             _configuration = configuration;
             _logger = logger;
+            _emailService = emailService;
         }
 
         [HttpGet]
@@ -229,6 +232,20 @@ namespace OPROZ_Main.Controllers
                 _context.PaymentHistories.Add(paymentHistory);
                 await _context.SaveChangesAsync();
 
+                // Send payment success email
+                try
+                {
+                    await _emailService.SendPaymentSuccessEmailAsync(
+                        user.Email!, 
+                        $"{user.FirstName} {user.LastName}", 
+                        paymentHistory);
+                }
+                catch (Exception emailEx)
+                {
+                    _logger.LogError(emailEx, "Failed to send payment success email to {Email}", user.Email);
+                    // Don't fail the payment process due to email failure
+                }
+
                 _logger.LogInformation("Payment successful for user {UserId}, plan {PlanId}, payment {PaymentId}", 
                     user.Id, model.SubscriptionPlanId, model.RazorpayPaymentId);
 
@@ -347,6 +364,8 @@ namespace OPROZ_Main.Controllers
             var paymentId = payment.GetProperty("id").GetString();
             
             var paymentHistory = await _context.PaymentHistories
+                .Include(p => p.User)
+                .Include(p => p.SubscriptionPlan)
                 .FirstOrDefaultAsync(p => p.RazorpayPaymentId == paymentId);
 
             if (paymentHistory != null && paymentHistory.Status == PaymentStatus.Pending)
@@ -354,6 +373,19 @@ namespace OPROZ_Main.Controllers
                 paymentHistory.Status = PaymentStatus.Success;
                 paymentHistory.UpdatedAt = DateTime.UtcNow;
                 await _context.SaveChangesAsync();
+
+                // Send payment success email
+                try
+                {
+                    await _emailService.SendPaymentSuccessEmailAsync(
+                        paymentHistory.User.Email!,
+                        $"{paymentHistory.User.FirstName} {paymentHistory.User.LastName}",
+                        paymentHistory);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to send payment success email for payment {PaymentId}", paymentId);
+                }
             }
         }
 
@@ -363,6 +395,8 @@ namespace OPROZ_Main.Controllers
             var paymentId = payment.GetProperty("id").GetString();
             
             var paymentHistory = await _context.PaymentHistories
+                .Include(p => p.User)
+                .Include(p => p.SubscriptionPlan)
                 .FirstOrDefaultAsync(p => p.RazorpayPaymentId == paymentId);
 
             if (paymentHistory != null)
@@ -370,6 +404,20 @@ namespace OPROZ_Main.Controllers
                 paymentHistory.Status = PaymentStatus.Failed;
                 paymentHistory.UpdatedAt = DateTime.UtcNow;
                 await _context.SaveChangesAsync();
+
+                // Send payment failure email
+                try
+                {
+                    await _emailService.SendPaymentFailureEmailAsync(
+                        paymentHistory.User.Email!,
+                        $"{paymentHistory.User.FirstName} {paymentHistory.User.LastName}",
+                        paymentHistory.SubscriptionPlan.Name,
+                        paymentHistory.FinalAmount);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to send payment failure email for payment {PaymentId}", paymentId);
+                }
             }
         }
 
