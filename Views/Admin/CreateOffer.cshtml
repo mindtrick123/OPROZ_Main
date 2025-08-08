@@ -1,0 +1,322 @@
+@model OPROZ_Main.Models.Offer
+@{
+    ViewData["Title"] = "Create Offer";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="page-title-box">
+                <h4 class="page-title">Create New Offer</h4>
+                <div class="page-title-right">
+                    <ol class="breadcrumb m-0">
+                        <li class="breadcrumb-item"><a href="@Url.Action("Index", "Admin")">Admin</a></li>
+                        <li class="breadcrumb-item"><a href="@Url.Action("Offers", "Admin")">Offers</a></li>
+                        <li class="breadcrumb-item active">Create</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-tag me-2"></i>Offer Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="CreateOffer" method="post" id="createOfferForm">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger d-none"></div>
+
+                        <!-- Basic Information -->
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    <label asp-for="Name" class="form-label">Offer Name <span class="text-danger">*</span></label>
+                                    <input asp-for="Name" class="form-control" placeholder="Enter offer name">
+                                    <span asp-validation-for="Name" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label asp-for="Code" class="form-label">Offer Code <span class="text-danger">*</span></label>
+                                    <input asp-for="Code" class="form-control" placeholder="SAVE20" style="text-transform: uppercase;">
+                                    <span asp-validation-for="Code" class="text-danger"></span>
+                                    <small class="form-text text-muted">Must be unique</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Description" class="form-label">Description</label>
+                            <textarea asp-for="Description" class="form-control" rows="3" placeholder="Enter offer description"></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+
+                        <!-- Offer Configuration -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="Type" class="form-label">Offer Type <span class="text-danger">*</span></label>
+                                    <select asp-for="Type" class="form-select" id="offerType">
+                                        <option value="">Select offer type</option>
+                                        <option value="@OPROZ_Main.Models.OfferType.Percentage">Percentage Discount</option>
+                                        <option value="@OPROZ_Main.Models.OfferType.FixedAmount">Fixed Amount Discount</option>
+                                        <option value="@OPROZ_Main.Models.OfferType.FreeMonth">Free Month(s)</option>
+                                    </select>
+                                    <span asp-validation-for="Type" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="Value" class="form-label">Value <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text" id="valuePrefix">$</span>
+                                        <input asp-for="Value" class="form-control" placeholder="0" min="0" step="0.01">
+                                        <span class="input-group-text" id="valueSuffix" style="display: none;">%</span>
+                                    </div>
+                                    <span asp-validation-for="Value" class="text-danger"></span>
+                                    <small class="form-text text-muted" id="valueHelp">Enter the discount value</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="ServiceId" class="form-label">Applicable Service</label>
+                                    <select asp-for="ServiceId" class="form-select">
+                                        <option value="">All Services</option>
+                                        @if (ViewBag.Services != null)
+                                        {
+                                            @foreach (var service in (IEnumerable<dynamic>)ViewBag.Services)
+                                            {
+                                                <option value="@service.Id">@service.Name</option>
+                                            }
+                                        }
+                                    </select>
+                                    <span asp-validation-for="ServiceId" class="text-danger"></span>
+                                    <small class="form-text text-muted">Leave empty to apply to all services</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="MinOrderAmount" class="form-label">Minimum Order Amount</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input asp-for="MinOrderAmount" class="form-control" placeholder="0.00" min="0" step="0.01">
+                                    </div>
+                                    <span asp-validation-for="MinOrderAmount" class="text-danger"></span>
+                                    <small class="form-text text-muted">Optional minimum order requirement</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Validity Period -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="StartDate" class="form-label">Start Date <span class="text-danger">*</span></label>
+                                    <input asp-for="StartDate" type="date" class="form-control">
+                                    <span asp-validation-for="StartDate" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="EndDate" class="form-label">End Date <span class="text-danger">*</span></label>
+                                    <input asp-for="EndDate" type="date" class="form-control">
+                                    <span asp-validation-for="EndDate" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Usage Limitations -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="MaxUsageCount" class="form-label">Maximum Usage Count</label>
+                                    <input asp-for="MaxUsageCount" class="form-control" placeholder="Unlimited" min="1">
+                                    <span asp-validation-for="MaxUsageCount" class="text-danger"></span>
+                                    <small class="form-text text-muted">Leave empty for unlimited usage</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3 d-flex align-items-center">
+                                    <div class="form-check form-switch">
+                                        <input asp-for="IsActive" class="form-check-input" type="checkbox" checked>
+                                        <label asp-for="IsActive" class="form-check-label">
+                                            Active
+                                        </label>
+                                    </div>
+                                    <small class="form-text text-muted ms-3">Offer will be available immediately if active</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Preview Card -->
+                        <div class="card bg-light mb-3" id="offerPreview" style="display: none;">
+                            <div class="card-header">
+                                <h6 class="card-title mb-0">
+                                    <i class="fas fa-eye me-2"></i>Offer Preview
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-8">
+                                        <h6 id="previewName">-</h6>
+                                        <p class="text-muted mb-2" id="previewDescription">-</p>
+                                        <p class="mb-0">
+                                            <span class="badge bg-primary" id="previewCode">-</span>
+                                            <span class="badge bg-success" id="previewDiscount">-</span>
+                                        </p>
+                                    </div>
+                                    <div class="col-md-4 text-end">
+                                        <p class="mb-1"><small class="text-muted">Valid from</small></p>
+                                        <p class="mb-0" id="previewPeriod">-</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="d-flex justify-content-between">
+                            <a href="@Url.Action("Offers")" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Create Offer
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const offerTypeSelect = document.getElementById('offerType');
+            const valuePrefix = document.getElementById('valuePrefix');
+            const valueSuffix = document.getElementById('valueSuffix');
+            const valueHelp = document.getElementById('valueHelp');
+            const codeInput = document.querySelector('input[name="Code"]');
+
+            // Auto-uppercase offer code
+            codeInput.addEventListener('input', function() {
+                this.value = this.value.toUpperCase();
+                updatePreview();
+            });
+
+            // Handle offer type change
+            offerTypeSelect.addEventListener('change', function () {
+                const selectedType = this.value;
+                
+                switch (selectedType) {
+                    case '@OPROZ_Main.Models.OfferType.Percentage':
+                        valuePrefix.style.display = 'none';
+                        valueSuffix.style.display = 'block';
+                        valueHelp.textContent = 'Enter percentage value (e.g., 20 for 20% off)';
+                        break;
+                    case '@OPROZ_Main.Models.OfferType.FixedAmount':
+                        valuePrefix.style.display = 'block';
+                        valueSuffix.style.display = 'none';
+                        valueHelp.textContent = 'Enter fixed discount amount';
+                        break;
+                    case '@OPROZ_Main.Models.OfferType.FreeMonth':
+                        valuePrefix.style.display = 'none';
+                        valueSuffix.style.display = 'none';
+                        valueHelp.textContent = 'Enter number of free months';
+                        break;
+                    default:
+                        valuePrefix.style.display = 'block';
+                        valueSuffix.style.display = 'none';
+                        valueHelp.textContent = 'Enter the discount value';
+                }
+                updatePreview();
+            });
+
+            // Update preview on input changes
+            const formInputs = document.querySelectorAll('#createOfferForm input, #createOfferForm select, #createOfferForm textarea');
+            formInputs.forEach(input => {
+                input.addEventListener('input', updatePreview);
+                input.addEventListener('change', updatePreview);
+            });
+
+            function updatePreview() {
+                const name = document.querySelector('input[name="Name"]').value;
+                const code = document.querySelector('input[name="Code"]').value;
+                const description = document.querySelector('textarea[name="Description"]').value;
+                const type = document.querySelector('select[name="Type"]').value;
+                const value = document.querySelector('input[name="Value"]').value;
+                const startDate = document.querySelector('input[name="StartDate"]').value;
+                const endDate = document.querySelector('input[name="EndDate"]').value;
+
+                if (name || code || description) {
+                    document.getElementById('offerPreview').style.display = 'block';
+                    
+                    document.getElementById('previewName').textContent = name || 'Offer Name';
+                    document.getElementById('previewDescription').textContent = description || 'No description provided';
+                    document.getElementById('previewCode').textContent = code || 'CODE';
+                    
+                    let discountText = '-';
+                    if (type && value) {
+                        switch (type) {
+                            case '@OPROZ_Main.Models.OfferType.Percentage':
+                                discountText = value + '% Off';
+                                break;
+                            case '@OPROZ_Main.Models.OfferType.FixedAmount':
+                                discountText = '$' + value + ' Off';
+                                break;
+                            case '@OPROZ_Main.Models.OfferType.FreeMonth':
+                                discountText = value + ' Free Month(s)';
+                                break;
+                        }
+                    }
+                    document.getElementById('previewDiscount').textContent = discountText;
+                    
+                    let periodText = '-';
+                    if (startDate && endDate) {
+                        const start = new Date(startDate).toLocaleDateString();
+                        const end = new Date(endDate).toLocaleDateString();
+                        periodText = start + ' to ' + end;
+                    }
+                    document.getElementById('previewPeriod').textContent = periodText;
+                } else {
+                    document.getElementById('offerPreview').style.display = 'none';
+                }
+            }
+
+            // Initial call to set up the form
+            updatePreview();
+        });
+
+        // Form validation
+        document.getElementById('createOfferForm').addEventListener('submit', function(e) {
+            const startDate = new Date(document.querySelector('input[name="StartDate"]').value);
+            const endDate = new Date(document.querySelector('input[name="EndDate"]').value);
+            
+            if (endDate <= startDate) {
+                e.preventDefault();
+                alert('End date must be after start date.');
+                return false;
+            }
+            
+            const value = parseFloat(document.querySelector('input[name="Value"]').value);
+            const type = document.querySelector('select[name="Type"]').value;
+            
+            if (type === '@OPROZ_Main.Models.OfferType.Percentage' && value > 100) {
+                e.preventDefault();
+                alert('Percentage discount cannot be more than 100%.');
+                return false;
+            }
+        });
+    </script>
+}

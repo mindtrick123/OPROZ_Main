@@ -1,0 +1,444 @@
+@model IEnumerable<OPROZ_Main.Models.Service>
+@{
+    ViewData["Title"] = "Services Management";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="page-title-box">
+                <h4 class="page-title">Services Management</h4>
+                <div class="page-title-right">
+                    <ol class="breadcrumb m-0">
+                        <li class="breadcrumb-item"><a href="@Url.Action("Index", "Admin")">Admin</a></li>
+                        <li class="breadcrumb-item active">Services</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Bar -->
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <a href="@Url.Action("CreateService")" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Create New Service
+            </a>
+            <button type="button" class="btn btn-outline-info ms-2" onclick="toggleReorderMode()">
+                <i class="fas fa-sort me-2"></i>Reorder Services
+            </button>
+        </div>
+        <div class="col-md-6 text-end">
+            <div class="d-inline-flex align-items-center">
+                <span class="text-muted me-2">Total: @ViewBag.TotalCount services</span>
+                <button class="btn btn-outline-success btn-sm" onclick="exportServices()">
+                    <i class="fas fa-download me-1"></i>Export
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-3">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label for="search" class="form-label">Search</label>
+                    <input type="text" class="form-control" id="search" name="search" value="@ViewBag.Search" placeholder="Name or description...">
+                </div>
+                <div class="col-md-2">
+                    <label for="isActive" class="form-label">Status</label>
+                    <select class="form-select" id="isActive" name="isActive">
+                        <option value="">All Status</option>
+                        @{
+                            var isActive = ViewBag.IsActive?.ToString();
+                        }
+                        <option value="true" selected="@(isActive == "True")">Active</option>
+                        <option value="false" selected="@(isActive == "False")">Inactive</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="isFeatured" class="form-label">Featured</label>
+                    <select class="form-select" id="isFeatured" name="isFeatured">
+                        <option value="">All</option>
+                        @{
+                            var isFeatured = ViewBag.IsFeatured?.ToString();
+                        }
+                        <option value="true" selected="@(isFeatured == "True")">Featured</option>
+                        <option value="false" selected="@(isFeatured == "False")">Not Featured</option>
+                    </select>
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button type="submit" class="btn btn-outline-primary me-2">
+                        <i class="fas fa-search me-1"></i>Filter
+                    </button>
+                    <a href="@Url.Action("Services")" class="btn btn-outline-secondary">
+                        <i class="fas fa-times me-1"></i>Clear
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Services Table -->
+    <div class="card">
+        <div class="card-body">
+            @if (Model != null && Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped" id="servicesTable">
+                        <thead class="table-dark">
+                            <tr>
+                                <th class="reorder-handle" style="display: none;"><i class="fas fa-grip-vertical"></i></th>
+                                <th>Service</th>
+                                <th>Description</th>
+                                <th>Base Price</th>
+                                <th>Plans</th>
+                                <th>Offers</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="servicesTableBody">
+                            @foreach (var service in Model)
+                            {
+                                <tr data-service-id="@service.Id">
+                                    <td class="reorder-handle" style="display: none;">
+                                        <i class="fas fa-grip-vertical text-muted"></i>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            @if (!string.IsNullOrEmpty(service.IconClass))
+                                            {
+                                                <i class="@service.IconClass me-2 text-primary"></i>
+                                            }
+                                            <div>
+                                                <div class="fw-bold">@service.Name</div>
+                                                @if (!string.IsNullOrEmpty(service.ShortDescription))
+                                                {
+                                                    <small class="text-muted">@service.ShortDescription</small>
+                                                }
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(service.Description))
+                                        {
+                                            <span title="@service.Description">
+                                                @(service.Description.Length > 100 ? service.Description.Substring(0, 100) + "..." : service.Description)
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">No description</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (service.BasePrice.HasValue)
+                                        {
+                                            <span class="fw-bold text-success">$@service.BasePrice.Value.ToString("N2")</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Variable</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">@service.SubscriptionPlans.Count plans</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-warning">@service.Offers.Count offers</span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex flex-wrap gap-1">
+                                            @if (service.IsActive)
+                                            {
+                                                <span class="badge bg-success">Active</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary">Inactive</span>
+                                            }
+                                            
+                                            @if (service.IsFeatured)
+                                            {
+                                                <span class="badge bg-warning">Featured</span>
+                                            }
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="@Url.Action("ServiceDetails", new { id = service.Id })" class="btn btn-sm btn-outline-info" title="View Details">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="@Url.Action("EditService", new { id = service.Id })" class="btn btn-sm btn-outline-primary" title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-sm btn-outline-warning" onclick="toggleServiceStatus(@service.Id, @service.IsActive.ToString().ToLower())" title="@(service.IsActive ? "Deactivate" : "Activate")">
+                                                <i class="fas fa-@(service.IsActive ? "pause" : "play")"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-@(service.IsFeatured ? "secondary" : "warning")" onclick="toggleServiceFeatured(@service.Id, @service.IsFeatured.ToString().ToLower())" title="@(service.IsFeatured ? "Unfeature" : "Feature")">
+                                                <i class="fas fa-star"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteService(@service.Id, '@service.Name')" title="Delete">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                @if (ViewBag.TotalPages > 1)
+                {
+                    <nav aria-label="Services pagination">
+                        <ul class="pagination justify-content-center mt-3">
+                            @if (ViewBag.CurrentPage > 1)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" href="@Url.Action("Services", new { page = ViewBag.CurrentPage - 1, search = ViewBag.Search, isActive = ViewBag.IsActive, isFeatured = ViewBag.IsFeatured })">Previous</a>
+                                </li>
+                            }
+
+                            @for (int i = Math.Max(1, ViewBag.CurrentPage - 2); i <= Math.Min(ViewBag.TotalPages, ViewBag.CurrentPage + 2); i++)
+                            {
+                                <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                                    <a class="page-link" href="@Url.Action("Services", new { page = i, search = ViewBag.Search, isActive = ViewBag.IsActive, isFeatured = ViewBag.IsFeatured })">@i</a>
+                                </li>
+                            }
+
+                            @if (ViewBag.CurrentPage < ViewBag.TotalPages)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" href="@Url.Action("Services", new { page = ViewBag.CurrentPage + 1, search = ViewBag.Search, isActive = ViewBag.IsActive, isFeatured = ViewBag.IsFeatured })">Next</a>
+                                </li>
+                            }
+                        </ul>
+                    </nav>
+                }
+
+                <!-- Reorder Controls -->
+                <div id="reorderControls" class="mt-3 text-center" style="display: none;">
+                    <button type="button" class="btn btn-success me-2" onclick="saveReorder()">
+                        <i class="fas fa-save me-1"></i>Save Order
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="cancelReorder()">
+                        <i class="fas fa-times me-1"></i>Cancel
+                    </button>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-cogs fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No services found</h5>
+                    <p class="text-muted">Try adjusting your filters or create a new service.</p>
+                    <a href="@Url.Action("CreateService")" class="btn btn-primary">Create First Service</a>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete the service "<span id="deleteServiceName"></span>"?</p>
+                <p class="text-danger"><small>This action cannot be undone and may affect related subscription plans and offers.</small></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let deleteServiceId = 0;
+        let reorderMode = false;
+
+        function deleteService(id, name) {
+            deleteServiceId = id;
+            document.getElementById('deleteServiceName').textContent = name;
+            new bootstrap.Modal(document.getElementById('deleteModal')).show();
+        }
+
+        document.getElementById('confirmDeleteBtn').addEventListener('click', function () {
+            if (deleteServiceId > 0) {
+                fetch('@Url.Action("DeleteService")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                    },
+                    body: JSON.stringify({ id: deleteServiceId })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast('success', data.message);
+                        location.reload();
+                    } else {
+                        showToast('error', data.message);
+                    }
+                })
+                .catch(error => {
+                    showToast('error', 'An error occurred while deleting the service.');
+                });
+
+                bootstrap.Modal.getInstance(document.getElementById('deleteModal')).hide();
+            }
+        });
+
+        function toggleServiceStatus(id, currentStatus) {
+            fetch('@Url.Action("ToggleServiceStatus")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                },
+                body: JSON.stringify({ id: id })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('success', data.message);
+                    location.reload();
+                } else {
+                    showToast('error', data.message);
+                }
+            })
+            .catch(error => {
+                showToast('error', 'An error occurred while updating the service status.');
+            });
+        }
+
+        function toggleServiceFeatured(id, currentFeatured) {
+            fetch('@Url.Action("ToggleServiceFeatured")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                },
+                body: JSON.stringify({ id: id })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('success', data.message);
+                    location.reload();
+                } else {
+                    showToast('error', data.message);
+                }
+            })
+            .catch(error => {
+                showToast('error', 'An error occurred while updating the service featured status.');
+            });
+        }
+
+        function toggleReorderMode() {
+            reorderMode = !reorderMode;
+            const handles = document.querySelectorAll('.reorder-handle');
+            const controls = document.getElementById('reorderControls');
+            
+            handles.forEach(handle => {
+                handle.style.display = reorderMode ? 'table-cell' : 'none';
+            });
+            
+            controls.style.display = reorderMode ? 'block' : 'none';
+            
+            if (reorderMode) {
+                // Make table sortable
+                const tbody = document.getElementById('servicesTableBody');
+                // Note: In a real implementation, you'd use a library like SortableJS
+                showToast('info', 'Reorder mode enabled. Drag and drop rows to reorder.');
+            }
+        }
+
+        function saveReorder() {
+            const rows = document.querySelectorAll('#servicesTableBody tr');
+            const serviceIds = Array.from(rows).map(row => parseInt(row.getAttribute('data-service-id')));
+            
+            fetch('@Url.Action("ReorderServices")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                },
+                body: JSON.stringify({ serviceIds: serviceIds })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('success', data.message);
+                    cancelReorder();
+                } else {
+                    showToast('error', data.message);
+                }
+            })
+            .catch(error => {
+                showToast('error', 'An error occurred while reordering services.');
+            });
+        }
+
+        function cancelReorder() {
+            reorderMode = false;
+            const handles = document.querySelectorAll('.reorder-handle');
+            const controls = document.getElementById('reorderControls');
+            
+            handles.forEach(handle => {
+                handle.style.display = 'none';
+            });
+            
+            controls.style.display = 'none';
+            location.reload();
+        }
+
+        function exportServices() {
+            const searchParams = new URLSearchParams(window.location.search);
+            const exportUrl = '@Url.Action("ExportServices")?' + searchParams.toString();
+            window.open(exportUrl, '_blank');
+        }
+
+        function showToast(type, message) {
+            const toastHtml = `
+                <div class="toast align-items-center text-white bg-${type === 'success' ? 'success' : type === 'info' ? 'info' : 'danger'} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex">
+                        <div class="toast-body">${message}</div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                </div>
+            `;
+            
+            let toastContainer = document.getElementById('toast-container');
+            if (!toastContainer) {
+                toastContainer = document.createElement('div');
+                toastContainer.id = 'toast-container';
+                toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
+                toastContainer.style.zIndex = '1055';
+                document.body.appendChild(toastContainer);
+            }
+            
+            toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+            const toastElement = toastContainer.lastElementChild;
+            const toast = new bootstrap.Toast(toastElement);
+            toast.show();
+            
+            toastElement.addEventListener('hidden.bs.toast', () => {
+                toastElement.remove();
+            });
+        }
+    </script>
+}

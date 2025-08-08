@@ -1,0 +1,373 @@
+@model IEnumerable<OPROZ_Main.Models.Offer>
+@{
+    ViewData["Title"] = "Offers Management";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="page-title-box">
+                <h4 class="page-title">Offers Management</h4>
+                <div class="page-title-right">
+                    <ol class="breadcrumb m-0">
+                        <li class="breadcrumb-item"><a href="@Url.Action("Index", "Admin")">Admin</a></li>
+                        <li class="breadcrumb-item active">Offers</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Bar -->
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <a href="@Url.Action("CreateOffer")" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Create New Offer
+            </a>
+        </div>
+        <div class="col-md-6 text-end">
+            <div class="d-inline-flex align-items-center">
+                <span class="text-muted me-2">Total: @ViewBag.TotalCount offers</span>
+                <button class="btn btn-outline-success btn-sm" onclick="exportOffers()">
+                    <i class="fas fa-download me-1"></i>Export
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-3">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label for="search" class="form-label">Search</label>
+                    <input type="text" class="form-control" id="search" name="search" value="@ViewBag.Search" placeholder="Name, code, or description...">
+                </div>
+                <div class="col-md-2">
+                    <label for="filterType" class="form-label">Type</label>
+                    <select class="form-select" id="filterType" name="filterType">
+                        <option value="">All Types</option>
+                        @{
+                            var filterType = ViewBag.FilterType?.ToString();
+                        }
+                        <option value="Percentage" selected="@(filterType == "Percentage")">Percentage</option>
+                        <option value="FixedAmount" selected="@(filterType == "FixedAmount")">Fixed Amount</option>
+                        <option value="FreeMonth" selected="@(filterType == "FreeMonth")">Free Month</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="isActive" class="form-label">Status</label>
+                    <select class="form-select" id="isActive" name="isActive">
+                        <option value="">All Status</option>
+                        @{
+                            var isActive = ViewBag.IsActive?.ToString();
+                        }
+                        <option value="true" selected="@(isActive == "True")">Active</option>
+                        <option value="false" selected="@(isActive == "False")">Inactive</option>
+                    </select>
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-outline-primary me-2">
+                        <i class="fas fa-search me-1"></i>Filter
+                    </button>
+                    <a href="@Url.Action("Offers")" class="btn btn-outline-secondary">
+                        <i class="fas fa-times me-1"></i>Clear
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Offers Table -->
+    <div class="card">
+        <div class="card-body">
+            @if (Model != null && Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Name</th>
+                                <th>Code</th>
+                                <th>Type</th>
+                                <th>Value</th>
+                                <th>Service</th>
+                                <th>Valid Period</th>
+                                <th>Usage</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var offer in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="fw-bold">@offer.Name</div>
+                                        @if (!string.IsNullOrEmpty(offer.Description))
+                                        {
+                                            <small class="text-muted">@offer.Description</small>
+                                        }
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">@offer.Code</span>
+                                    </td>
+                                    <td>
+                                        @switch (offer.Type)
+                                        {
+                                            case OPROZ_Main.Models.OfferType.Percentage:
+                                                <span class="badge bg-success">Percentage</span>
+                                                break;
+                                            case OPROZ_Main.Models.OfferType.FixedAmount:
+                                                <span class="badge bg-primary">Fixed Amount</span>
+                                                break;
+                                            case OPROZ_Main.Models.OfferType.FreeMonth:
+                                                <span class="badge bg-warning">Free Month</span>
+                                                break;
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (offer.Type == OPROZ_Main.Models.OfferType.Percentage)
+                                        {
+                                            <span>@offer.Value%</span>
+                                        }
+                                        else if (offer.Type == OPROZ_Main.Models.OfferType.FixedAmount)
+                                        {
+                                            <span>$@offer.Value.ToString("N2")</span>
+                                        }
+                                        else
+                                        {
+                                            <span>@offer.Value month(s)</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (offer.Service != null)
+                                        {
+                                            <span>@offer.Service.Name</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">All Services</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <div>@offer.StartDate.ToString("MMM dd, yyyy")</div>
+                                        <div>@offer.EndDate.ToString("MMM dd, yyyy")</div>
+                                        @if (offer.EndDate < DateTime.Now)
+                                        {
+                                            <small class="text-danger">Expired</small>
+                                        }
+                                        else if (offer.StartDate > DateTime.Now)
+                                        {
+                                            <small class="text-warning">Not Started</small>
+                                        }
+                                        else
+                                        {
+                                            <small class="text-success">Active Period</small>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (offer.MaxUsageCount.HasValue)
+                                        {
+                                            <div>@offer.UsedCount / @offer.MaxUsageCount</div>
+                                            <div class="progress" style="height: 4px;">
+                                                <div class="progress-bar" role="progressbar" style="width: @((double)offer.UsedCount / offer.MaxUsageCount.Value * 100)%"></div>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <span>@offer.UsedCount / Unlimited</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (offer.IsActive)
+                                        {
+                                            <span class="badge bg-success">Active</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">Inactive</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="@Url.Action("OfferDetails", new { id = offer.Id })" class="btn btn-sm btn-outline-info" title="View Details">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="@Url.Action("EditOffer", new { id = offer.Id })" class="btn btn-sm btn-outline-primary" title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-sm btn-outline-warning" onclick="toggleOfferStatus(@offer.Id, @offer.IsActive.ToString().ToLower())" title="@(offer.IsActive ? "Deactivate" : "Activate")">
+                                                <i class="fas fa-@(offer.IsActive ? "pause" : "play")"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteOffer(@offer.Id, '@offer.Name')" title="Delete">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                @if (ViewBag.TotalPages > 1)
+                {
+                    <nav aria-label="Offers pagination">
+                        <ul class="pagination justify-content-center mt-3">
+                            @if (ViewBag.CurrentPage > 1)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" href="@Url.Action("Offers", new { page = ViewBag.CurrentPage - 1, search = ViewBag.Search, filterType = ViewBag.FilterType, isActive = ViewBag.IsActive })">Previous</a>
+                                </li>
+                            }
+
+                            @for (int i = Math.Max(1, ViewBag.CurrentPage - 2); i <= Math.Min(ViewBag.TotalPages, ViewBag.CurrentPage + 2); i++)
+                            {
+                                <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                                    <a class="page-link" href="@Url.Action("Offers", new { page = i, search = ViewBag.Search, filterType = ViewBag.FilterType, isActive = ViewBag.IsActive })">@i</a>
+                                </li>
+                            }
+
+                            @if (ViewBag.CurrentPage < ViewBag.TotalPages)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" href="@Url.Action("Offers", new { page = ViewBag.CurrentPage + 1, search = ViewBag.Search, filterType = ViewBag.FilterType, isActive = ViewBag.IsActive })">Next</a>
+                                </li>
+                            }
+                        </ul>
+                    </nav>
+                }
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No offers found</h5>
+                    <p class="text-muted">Try adjusting your filters or create a new offer.</p>
+                    <a href="@Url.Action("CreateOffer")" class="btn btn-primary">Create First Offer</a>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete the offer "<span id="deleteOfferName"></span>"?</p>
+                <p class="text-danger"><small>This action cannot be undone.</small></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let deleteOfferId = 0;
+
+        function deleteOffer(id, name) {
+            deleteOfferId = id;
+            document.getElementById('deleteOfferName').textContent = name;
+            new bootstrap.Modal(document.getElementById('deleteModal')).show();
+        }
+
+        document.getElementById('confirmDeleteBtn').addEventListener('click', function () {
+            if (deleteOfferId > 0) {
+                fetch('@Url.Action("DeleteOffer")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                    },
+                    body: JSON.stringify({ id: deleteOfferId })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast('success', data.message);
+                        location.reload();
+                    } else {
+                        showToast('error', data.message);
+                    }
+                })
+                .catch(error => {
+                    showToast('error', 'An error occurred while deleting the offer.');
+                });
+
+                bootstrap.Modal.getInstance(document.getElementById('deleteModal')).hide();
+            }
+        });
+
+        function toggleOfferStatus(id, currentStatus) {
+            fetch('@Url.Action("ToggleOfferStatus")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                },
+                body: JSON.stringify({ id: id })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('success', data.message);
+                    location.reload();
+                } else {
+                    showToast('error', data.message);
+                }
+            })
+            .catch(error => {
+                showToast('error', 'An error occurred while updating the offer status.');
+            });
+        }
+
+        function exportOffers() {
+            const searchParams = new URLSearchParams(window.location.search);
+            const exportUrl = '@Url.Action("ExportOffers")?' + searchParams.toString();
+            window.open(exportUrl, '_blank');
+        }
+
+        function showToast(type, message) {
+            // Simple toast implementation
+            const toastHtml = `
+                <div class="toast align-items-center text-white bg-${type === 'success' ? 'success' : 'danger'} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex">
+                        <div class="toast-body">${message}</div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                </div>
+            `;
+            
+            let toastContainer = document.getElementById('toast-container');
+            if (!toastContainer) {
+                toastContainer = document.createElement('div');
+                toastContainer.id = 'toast-container';
+                toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
+                toastContainer.style.zIndex = '1055';
+                document.body.appendChild(toastContainer);
+            }
+            
+            toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+            const toastElement = toastContainer.lastElementChild;
+            const toast = new bootstrap.Toast(toastElement);
+            toast.show();
+            
+            toastElement.addEventListener('hidden.bs.toast', () => {
+                toastElement.remove();
+            });
+        }
+    </script>
+}

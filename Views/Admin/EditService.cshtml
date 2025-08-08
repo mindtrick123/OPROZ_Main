@@ -1,0 +1,251 @@
+@model OPROZ_Main.Models.Service
+@{
+    ViewData["Title"] = "Edit Service";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="page-title-box">
+                <h4 class="page-title">Edit Service</h4>
+                <div class="page-title-right">
+                    <ol class="breadcrumb m-0">
+                        <li class="breadcrumb-item"><a href="@Url.Action("Index", "Admin")">Admin</a></li>
+                        <li class="breadcrumb-item"><a href="@Url.Action("Services", "Admin")">Services</a></li>
+                        <li class="breadcrumb-item active">Edit</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-edit me-2"></i>Edit Service: @Model.Name
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="EditService" method="post" id="editServiceForm">
+                        <input asp-for="Id" type="hidden" />
+                        <input asp-for="CreatedAt" type="hidden" />
+                        
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger d-none"></div>
+
+                        <!-- Usage Information -->
+                        @if (Model.SubscriptionPlans.Any() || Model.Offers.Any())
+                        {
+                            <div class="alert alert-info">
+                                <h6 class="alert-heading">
+                                    <i class="fas fa-info-circle me-2"></i>Usage Information
+                                </h6>
+                                <p class="mb-2">This service is being used by:</p>
+                                <ul class="mb-2">
+                                    @if (Model.SubscriptionPlans.Any())
+                                    {
+                                        <li><strong>@Model.SubscriptionPlans.Count subscription plan(s)</strong></li>
+                                    }
+                                    @if (Model.Offers.Any())
+                                    {
+                                        <li><strong>@Model.Offers.Count offer(s)</strong></li>
+                                    }
+                                </ul>
+                                <hr class="mb-2">
+                                <small class="text-muted">Be careful when modifying service details as it may affect existing plans and offers.</small>
+                            </div>
+                        }
+
+                        <!-- Basic Information -->
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    <label asp-for="Name" class="form-label">Service Name <span class="text-danger">*</span></label>
+                                    <input asp-for="Name" class="form-control" placeholder="Enter service name">
+                                    <span asp-validation-for="Name" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label asp-for="IconClass" class="form-label">Icon Class</label>
+                                    <input asp-for="IconClass" class="form-control" placeholder="fas fa-cogs">
+                                    <span asp-validation-for="IconClass" class="text-danger"></span>
+                                    <small class="form-text text-muted">FontAwesome or similar icon class</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="ShortDescription" class="form-label">Short Description</label>
+                            <input asp-for="ShortDescription" class="form-control" placeholder="Brief description for cards and listings">
+                            <span asp-validation-for="ShortDescription" class="text-danger"></span>
+                            <small class="form-text text-muted">Maximum 500 characters</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Description" class="form-label">Full Description</label>
+                            <textarea asp-for="Description" class="form-control" rows="4" placeholder="Detailed description of the service"></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+
+                        <!-- Visual Configuration -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="ImageUrl" class="form-label">Image URL</label>
+                                    <input asp-for="ImageUrl" class="form-control" placeholder="https://example.com/image.jpg">
+                                    <span asp-validation-for="ImageUrl" class="text-danger"></span>
+                                    <small class="form-text text-muted">Service image for marketing materials</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="BasePrice" class="form-label">Base Price</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input asp-for="BasePrice" class="form-control" placeholder="0.00" min="0" step="0.01">
+                                    </div>
+                                    <span asp-validation-for="BasePrice" class="text-danger"></span>
+                                    <small class="form-text text-muted">Leave empty if pricing varies by plan</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Settings -->
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label asp-for="DisplayOrder" class="form-label">Display Order</label>
+                                    <input asp-for="DisplayOrder" class="form-control" type="number" min="0">
+                                    <span asp-validation-for="DisplayOrder" class="text-danger"></span>
+                                    <small class="form-text text-muted">Lower numbers appear first</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3 d-flex align-items-center">
+                                    <div class="form-check form-switch">
+                                        <input asp-for="IsActive" class="form-check-input" type="checkbox">
+                                        <label asp-for="IsActive" class="form-check-label">
+                                            Active
+                                        </label>
+                                    </div>
+                                    <small class="form-text text-muted ms-3">Service is available for purchase</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3 d-flex align-items-center">
+                                    <div class="form-check form-switch">
+                                        <input asp-for="IsFeatured" class="form-check-input" type="checkbox">
+                                        <label asp-for="IsFeatured" class="form-check-label">
+                                            Featured
+                                        </label>
+                                    </div>
+                                    <small class="form-text text-muted ms-3">Highlight in listings</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Metadata -->
+                        <div class="card bg-light mb-3">
+                            <div class="card-body">
+                                <h6 class="card-title">
+                                    <i class="fas fa-info-circle me-2"></i>Service Metadata
+                                </h6>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p class="mb-1"><strong>Created:</strong> @Model.CreatedAt.ToString("MMM dd, yyyy 'at' HH:mm")</p>
+                                        <p class="mb-1"><strong>Subscription Plans:</strong> @Model.SubscriptionPlans.Count</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        @if (Model.UpdatedAt.HasValue)
+                                        {
+                                            <p class="mb-1"><strong>Last Updated:</strong> @Model.UpdatedAt.Value.ToString("MMM dd, yyyy 'at' HH:mm")</p>
+                                        }
+                                        <p class="mb-1"><strong>Offers:</strong> @Model.Offers.Count</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <a href="@Url.Action("Services")" class="btn btn-outline-secondary">
+                                    <i class="fas fa-arrow-left me-2"></i>Back to List
+                                </a>
+                                <a href="@Url.Action("ServiceDetails", new { id = Model.Id })" class="btn btn-outline-info">
+                                    <i class="fas fa-eye me-2"></i>View Details
+                                </a>
+                            </div>
+                            <div>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-2"></i>Update Service
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Icon class suggestions
+            const iconInput = document.querySelector('input[name="IconClass"]');
+            iconInput.addEventListener('focus', function() {
+                if (!this.value) {
+                    showIconSuggestions(this);
+                }
+            });
+
+            function showIconSuggestions(input) {
+                const suggestions = [
+                    'fas fa-cogs',
+                    'fas fa-code',
+                    'fas fa-mobile-alt',
+                    'fas fa-cloud',
+                    'fas fa-chart-line',
+                    'fas fa-shield-alt',
+                    'fas fa-database',
+                    'fas fa-globe',
+                    'fas fa-rocket',
+                    'fas fa-palette'
+                ];
+                
+                // Update help text with suggestions
+                const helpText = input.nextElementSibling.nextElementSibling;
+                helpText.innerHTML = 'Suggestions: ' + suggestions.map(icon => 
+                    `<span class="badge bg-light text-dark me-1 cursor-pointer" onclick="selectIcon('${icon}')">${icon}</span>`
+                ).join('');
+            }
+        });
+
+        function selectIcon(iconClass) {
+            document.querySelector('input[name="IconClass"]').value = iconClass;
+        }
+
+        // Form validation
+        document.getElementById('editServiceForm').addEventListener('submit', function(e) {
+            const name = document.querySelector('input[name="Name"]').value.trim();
+            if (!name) {
+                e.preventDefault();
+                alert('Service name is required.');
+                return false;
+            }
+            
+            const shortDesc = document.querySelector('input[name="ShortDescription"]').value;
+            if (shortDesc && shortDesc.length > 500) {
+                e.preventDefault();
+                alert('Short description must be 500 characters or less.');
+                return false;
+            }
+        });
+    </script>
+}
