@@ -105,6 +105,15 @@
                 padding: 0.5rem 1rem;
                 font-size: 1rem;
             }
+            .card-body {
+                padding: 2rem 1.5rem !important;
+            }
+            .display-4 {
+                font-size: 1.8rem !important;
+            }
+            .footer .col-lg-4, .footer .col-lg-2, .footer .col-md-3 {
+                margin-bottom: 2rem;
+            }
         }
 
         .navbar {
@@ -577,53 +586,54 @@
     <footer class="footer">
         <div class="container">
             <div class="row">
-                <div class="col-lg-4">
+                <div class="col-lg-4 mb-4">
                     <h5>OPROZ SaaS Platform</h5>
                     <p>Empowering businesses with cutting-edge technology solutions. Transform your digital presence with our comprehensive suite of services.</p>
-                    <div style="display: flex; gap: 1rem;">
-                        <a href="#" style="font-size: 1.5rem;">📘</a>
-                        <a href="#" style="font-size: 1.5rem;">🐦</a>
-                        <a href="#" style="font-size: 1.5rem;">💼</a>
-                        <a href="#" style="font-size: 1.5rem;">📷</a>
+                    <div class="d-flex gap-3 mt-3">
+                        <a href="#" class="text-decoration-none" style="font-size: 1.5rem;">📘</a>
+                        <a href="#" class="text-decoration-none" style="font-size: 1.5rem;">🐦</a>
+                        <a href="#" class="text-decoration-none" style="font-size: 1.5rem;">💼</a>
+                        <a href="#" class="text-decoration-none" style="font-size: 1.5rem;">📷</a>
                     </div>
                 </div>
                 
-                <div class="col-md-3">
+                <div class="col-lg-2 col-md-3 mb-4">
                     <h5>Services</h5>
                     <ul class="list-unstyled">
-                        <li><a href="@Url.Action("Services", "Home")">Web Development</a></li>
-                        <li><a href="@Url.Action("Services", "Home")">Mobile Apps</a></li>
-                        <li><a href="@Url.Action("Services", "Home")">Digital Marketing</a></li>
-                        <li><a href="@Url.Action("Services", "Home")">Cloud Solutions</a></li>
+                        <li class="mb-2"><a href="@Url.Action("Services", "Home")" class="footer-link">Web Development</a></li>
+                        <li class="mb-2"><a href="@Url.Action("Services", "Home")" class="footer-link">Mobile Apps</a></li>
+                        <li class="mb-2"><a href="@Url.Action("Services", "Home")" class="footer-link">Digital Marketing</a></li>
+                        <li class="mb-2"><a href="@Url.Action("Services", "Home")" class="footer-link">Cloud Solutions</a></li>
                     </ul>
                 </div>
                 
-                <div class="col-md-3">
+                <div class="col-lg-2 col-md-3 mb-4">
                     <h5>Company</h5>
                     <ul class="list-unstyled">
-                        <li><a href="@Url.Action("About", "Home")">About Us</a></li>
-                        <li><a href="@Url.Action("Blogs", "Home")">Blog</a></li>
-                        <li><a href="@Url.Action("Contact", "Home")">Contact</a></li>
-                        <li><a href="#">Careers</a></li>
+                        <li class="mb-2"><a href="@Url.Action("About", "Home")" class="footer-link">About Us</a></li>
+                        <li class="mb-2"><a href="@Url.Action("Blogs", "Home")" class="footer-link">Blog</a></li>
+                        <li class="mb-2"><a href="@Url.Action("Contact", "Home")" class="footer-link">Contact</a></li>
+                        <li class="mb-2"><a href="#" class="footer-link">Careers</a></li>
                     </ul>
                 </div>
                 
-                <div class="col-md-3">
+                <div class="col-lg-2 col-md-3 mb-4">
                     <h5>Support</h5>
                     <ul class="list-unstyled">
-                        <li><a href="#">Help Center</a></li>
-                        <li><a href="#">Documentation</a></li>
-                        <li><a href="@Url.Action("Privacy", "Home")">Privacy Policy</a></li>
-                        <li><a href="@Url.Action("Terms", "Home")">Terms of Service</a></li>
+                        <li class="mb-2"><a href="#" class="footer-link">Help Center</a></li>
+                        <li class="mb-2"><a href="#" class="footer-link">Documentation</a></li>
+                        <li class="mb-2"><a href="@Url.Action("Privacy", "Home")" class="footer-link">Privacy Policy</a></li>
+                        <li class="mb-2"><a href="@Url.Action("Terms", "Home")" class="footer-link">Terms of Service</a></li>
+                        <li class="mb-2"><a href="@Url.Action("AdminLogin", "Account")" class="footer-link text-warning">🔐 Admin Login</a></li>
                     </ul>
                 </div>
                 
-                <div class="col-md-3">
+                <div class="col-lg-2 col-md-3 mb-4">
                     <h5>Contact Info</h5>
                     <ul class="list-unstyled">
-                        <li><span class="icon-envelope"></span> support@oproz.com</li>
-                        <li><span class="icon-phone"></span> +1 (555) 123-4567</li>
-                        <li><span class="icon-location"></span> New York, NY</li>
+                        <li class="mb-2"><span class="icon-envelope me-2"></span>support@oproz.com</li>
+                        <li class="mb-2"><span class="icon-phone me-2"></span>+1 (555) 123-4567</li>
+                        <li class="mb-2"><span class="icon-location me-2"></span>New York, NY</li>
                     </ul>
                 </div>
             </div>

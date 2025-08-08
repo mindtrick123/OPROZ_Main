@@ -294,6 +294,67 @@ namespace OPROZ_Main.Controllers
             return View(model);
         }
 
+        [HttpGet]
+        public IActionResult AdminLogin(string? returnUrl = null)
+        {
+            ViewData["ReturnUrl"] = returnUrl;
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AdminLogin(AdminLoginViewModel model, string? returnUrl = null)
+        {
+            ViewData["ReturnUrl"] = returnUrl;
+
+            if (ModelState.IsValid)
+            {
+                var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: true);
+
+                if (result.Succeeded)
+                {
+                    var user = await _userManager.FindByEmailAsync(model.Email);
+                    if (user != null)
+                    {
+                        // Check if user has admin role
+                        var roles = await _userManager.GetRolesAsync(user);
+                        if (roles.Contains("Admin") || roles.Contains("Manager"))
+                        {
+                            user.LastLoginAt = DateTime.UtcNow;
+                            await _userManager.UpdateAsync(user);
+
+                            _logger.LogInformation("Admin {Email} logged in.", model.Email);
+                            
+                            // Redirect to admin dashboard
+                            return RedirectToAction("Index", "Admin");
+                        }
+                        else
+                        {
+                            await _signInManager.SignOutAsync();
+                            ModelState.AddModelError(string.Empty, "Access denied. Admin privileges required.");
+                            return View(model);
+                        }
+                    }
+                }
+
+                if (result.RequiresTwoFactor)
+                {
+                    return RedirectToAction(nameof(LoginWith2fa), new { returnUrl, model.RememberMe });
+                }
+
+                if (result.IsLockedOut)
+                {
+                    _logger.LogWarning("Admin user {Email} account locked out.", model.Email);
+                    ModelState.AddModelError(string.Empty, "Account is locked out.");
+                    return View(model);
+                }
+
+                ModelState.AddModelError(string.Empty, "Invalid admin login attempt.");
+            }
+
+            return View(model);
+        }
+
         private IActionResult RedirectToLocal(string? returnUrl)
         {
             if (Url.IsLocalUrl(returnUrl))
