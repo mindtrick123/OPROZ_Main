@@ -184,7 +184,7 @@ namespace OPROZ_Main.Controllers
                         Summary = "Explore the latest trends shaping the Software as a Service industry and what they mean for businesses.",
                         Author = "John Doe",
                         PublishedDate = DateTime.Now.AddDays(-5),
-                        ImageUrl = "/images/blog/saas-trends-2024.jpg",
+                        ImageUrl = "/images/blog/saas-trends-2024.svg",
                         Category = "Technology",
                         ReadTimeMinutes = 8
                     },
@@ -195,7 +195,7 @@ namespace OPROZ_Main.Controllers
                         Summary = "Learn how small businesses can successfully navigate digital transformation with practical strategies.",
                         Author = "Jane Smith",
                         PublishedDate = DateTime.Now.AddDays(-12),
-                        ImageUrl = "/images/blog/digital-transformation.jpg",
+                        ImageUrl = "/images/blog/digital-transformation.svg",
                         Category = "Business",
                         ReadTimeMinutes = 12
                     },
@@ -206,7 +206,7 @@ namespace OPROZ_Main.Controllers
                         Summary = "Essential security measures to protect your business data in the cloud.",
                         Author = "Mike Johnson",
                         PublishedDate = DateTime.Now.AddDays(-20),
-                        ImageUrl = "/images/blog/cloud-security.jpg",
+                        ImageUrl = "/images/blog/cloud-security.svg",
                         Category = "Security",
                         ReadTimeMinutes = 10
                     },
@@ -217,7 +217,7 @@ namespace OPROZ_Main.Controllers
                         Summary = "A comprehensive guide to selecting technologies that will scale with your business.",
                         Author = "John Doe",
                         PublishedDate = DateTime.Now.AddDays(-28),
-                        ImageUrl = "/images/blog/tech-stack.jpg",
+                        ImageUrl = "/images/blog/tech-stack.svg",
                         Category = "Development",
                         ReadTimeMinutes = 15
                     }
