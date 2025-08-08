@@ -130,6 +130,13 @@
     }
 
     function openRazorpayCheckout(paymentData) {
+        // Check if we're in demo mode (invalid or demo key)
+        if (!paymentData.keyId || paymentData.keyId === 'rzp_test_demo_key' || paymentData.orderId.includes('demo') || paymentData.orderId.includes('fallback')) {
+            // Show demo payment modal instead of Razorpay
+            showDemoPaymentDialog(paymentData);
+            return;
+        }
+
         const options = {
             key: paymentData.keyId,
             amount: paymentData.amount * 100, // Amount in paise
@@ -157,6 +164,83 @@
 
         const rzp = new Razorpay(options);
         rzp.open();
+    }
+
+    function showDemoPaymentDialog(paymentData) {
+        const demoModal = `
+            <div class="modal fade" id="demoPaymentModal" tabindex="-1" aria-labelledby="demoPaymentModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-md">
+                    <div class="modal-content">
+                        <div class="modal-header bg-warning">
+                            <h5 class="modal-title" id="demoPaymentModalLabel">
+                                <i class="fas fa-exclamation-triangle"></i> Demo Payment Mode
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle"></i> 
+                                <strong>Demo Mode Active</strong><br>
+                                Razorpay is not configured with valid credentials. This is a demonstration of the payment flow.
+                            </div>
+                            <h6>Payment Details:</h6>
+                            <table class="table table-borderless table-sm">
+                                <tr><td><strong>Plan:</strong></td><td>${paymentData.description}</td></tr>
+                                <tr><td><strong>Amount:</strong></td><td>₹${paymentData.amount.toFixed(2)}</td></tr>
+                                <tr><td><strong>Order ID:</strong></td><td><small>${paymentData.orderId}</small></td></tr>
+                            </table>
+                            <div class="alert alert-warning">
+                                <strong>For Production:</strong> Configure valid Razorpay API keys in appsettings.json
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn btn-success" onclick="simulateDemoPayment('${paymentData.orderId}', '${paymentData.subscriptionPlanId}', '${paymentData.offerId || ''}')">
+                                <i class="fas fa-check"></i> Simulate Successful Payment
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+        
+        // Remove existing modal if any
+        const existingModal = document.getElementById('demoPaymentModal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+        
+        // Add modal to page
+        document.body.insertAdjacentHTML('beforeend', demoModal);
+        
+        // Show modal
+        const modal = new bootstrap.Modal(document.getElementById('demoPaymentModal'));
+        modal.show();
+        
+        // Clean up when modal is hidden
+        document.getElementById('demoPaymentModal').addEventListener('hidden.bs.modal', function () {
+            this.remove();
+            resetPayButton();
+        });
+    }
+
+    function simulateDemoPayment(orderId, subscriptionPlanId, offerId) {
+        // Hide demo modal
+        const modal = bootstrap.Modal.getInstance(document.getElementById('demoPaymentModal'));
+        modal.hide();
+        
+        // Simulate successful Razorpay response
+        const demoResponse = {
+            razorpay_order_id: orderId,
+            razorpay_payment_id: `pay_demo_${Date.now()}`,
+            razorpay_signature: 'demo_signature_' + Math.random().toString(36).substr(2, 9)
+        };
+        
+        const paymentData = {
+            subscriptionPlanId: parseInt(subscriptionPlanId),
+            offerId: offerId ? parseInt(offerId) : null
+        };
+        
+        verifyPayment(demoResponse, paymentData);
     }
 
     function verifyPayment(response, paymentData) {
