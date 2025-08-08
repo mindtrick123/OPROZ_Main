@@ -16,6 +16,22 @@ namespace OPROZ_Main.ViewModels
         public bool RememberMe { get; set; }
     }
 
+    public class AdminLoginViewModel
+    {
+        [Required]
+        [EmailAddress]
+        [Display(Name = "Admin Email")]
+        public string Email { get; set; } = string.Empty;
+
+        [Required]
+        [DataType(DataType.Password)]
+        [Display(Name = "Admin Password")]
+        public string Password { get; set; } = string.Empty;
+
+        [Display(Name = "Remember me?")]
+        public bool RememberMe { get; set; }
+    }
+
     public class RegisterViewModel
     {
         [Required]
