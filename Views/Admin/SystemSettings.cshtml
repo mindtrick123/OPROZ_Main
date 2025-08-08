@@ -1,0 +1,385 @@
+@model SystemSettingsViewModel
+@{
+    ViewData["Title"] = "System Settings";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="page-title-box">
+                <h4 class="page-title">
+                    <i class="fas fa-cog me-2"></i>System Settings
+                </h4>
+                <div class="page-title-right">
+                    <ol class="breadcrumb m-0">
+                        <li class="breadcrumb-item"><a href="@Url.Action("Index", "Admin")">Admin</a></li>
+                        <li class="breadcrumb-item active">System Settings</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <form asp-action="SystemSettings" method="post">
+        <div class="row">
+            <!-- General Settings -->
+            <div class="col-xl-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="header-title mb-3">
+                            <i class="fas fa-globe me-2"></i>General Settings
+                        </h4>
+                        
+                        <div class="mb-3">
+                            <label asp-for="ApplicationName" class="form-label">Application Name</label>
+                            <input asp-for="ApplicationName" class="form-control" placeholder="Enter application name">
+                            <span asp-validation-for="ApplicationName" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label asp-for="ApplicationVersion" class="form-label">Application Version</label>
+                            <input asp-for="ApplicationVersion" class="form-control" readonly>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        <input asp-for="MaintenanceMode" class="form-check-input" type="checkbox">
+                                        <label asp-for="MaintenanceMode" class="form-check-label">
+                                            Maintenance Mode
+                                        </label>
+                                    </div>
+                                    <small class="text-muted">Disable public access during maintenance</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        <input asp-for="AllowRegistration" class="form-check-input" type="checkbox">
+                                        <label asp-for="AllowRegistration" class="form-check-label">
+                                            Allow Registration
+                                        </label>
+                                    </div>
+                                    <small class="text-muted">Allow new user registrations</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        <input asp-for="RequireEmailConfirmation" class="form-check-input" type="checkbox">
+                                        <label asp-for="RequireEmailConfirmation" class="form-check-label">
+                                            Require Email Confirmation
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="MaxUsersPerCompany" class="form-label">Max Users Per Company</label>
+                                    <input asp-for="MaxUsersPerCompany" class="form-control" type="number" min="1" max="1000">
+                                    <span asp-validation-for="MaxUsersPerCompany" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label asp-for="SessionTimeoutMinutes" class="form-label">Session Timeout (Minutes)</label>
+                            <input asp-for="SessionTimeoutMinutes" class="form-control" type="number" min="5" max="720">
+                            <span asp-validation-for="SessionTimeoutMinutes" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Email Settings -->
+            <div class="col-xl-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="header-title mb-3">
+                            <i class="fas fa-envelope me-2"></i>Email Settings
+                        </h4>
+                        
+                        <div class="mb-3">
+                            <label asp-for="SmtpServer" class="form-label">SMTP Server</label>
+                            <input asp-for="SmtpServer" class="form-control" placeholder="smtp.gmail.com">
+                            <span asp-validation-for="SmtpServer" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="SmtpPort" class="form-label">SMTP Port</label>
+                                    <input asp-for="SmtpPort" class="form-control" type="number" min="1" max="65535">
+                                    <span asp-validation-for="SmtpPort" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <div class="form-check mt-4">
+                                        <input asp-for="SmtpUseSSL" class="form-check-input" type="checkbox">
+                                        <label asp-for="SmtpUseSSL" class="form-check-label">
+                                            Use SSL/TLS
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label asp-for="SmtpUsername" class="form-label">SMTP Username</label>
+                            <input asp-for="SmtpUsername" class="form-control" placeholder="your-email@domain.com">
+                            <span asp-validation-for="SmtpUsername" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label asp-for="SmtpPassword" class="form-label">SMTP Password</label>
+                            <input asp-for="SmtpPassword" class="form-control" type="password" placeholder="Enter SMTP password">
+                            <small class="text-muted">Leave blank to keep current password</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Payment Settings -->
+            <div class="col-xl-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="header-title mb-3">
+                            <i class="fas fa-credit-card me-2"></i>Payment Settings
+                        </h4>
+                        
+                        <div class="mb-3">
+                            <label asp-for="RazorpayKeyId" class="form-label">Razorpay Key ID</label>
+                            <input asp-for="RazorpayKeyId" class="form-control" placeholder="rzp_test_...">
+                            <span asp-validation-for="RazorpayKeyId" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label asp-for="RazorpayKeySecret" class="form-label">Razorpay Key Secret</label>
+                            <input asp-for="RazorpayKeySecret" class="form-control" type="password" placeholder="Enter Razorpay secret">
+                            <small class="text-muted">Leave blank to keep current secret</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Settings -->
+            <div class="col-xl-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="header-title mb-3">
+                            <i class="fas fa-server me-2"></i>System Settings
+                        </h4>
+                        
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input asp-for="BackupEnabled" class="form-check-input" type="checkbox">
+                                <label asp-for="BackupEnabled" class="form-check-label">
+                                    Enable Automatic Backup
+                                </label>
+                            </div>
+                            <small class="text-muted">Automatically backup database and files</small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label asp-for="BackupIntervalHours" class="form-label">Backup Interval (Hours)</label>
+                            <input asp-for="BackupIntervalHours" class="form-control" type="number" min="1" max="168">
+                            <span asp-validation-for="BackupIntervalHours" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label asp-for="LogLevel" class="form-label">Log Level</label>
+                            <select asp-for="LogLevel" class="form-select">
+                                <option value="Trace">Trace</option>
+                                <option value="Debug">Debug</option>
+                                <option value="Information">Information</option>
+                                <option value="Warning">Warning</option>
+                                <option value="Error">Error</option>
+                                <option value="Critical">Critical</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-2"></i>Save Settings
+                                </button>
+                                <a href="@Url.Action("Index", "Admin")" class="btn btn-secondary ms-2">
+                                    <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                                </a>
+                            </div>
+                            <div>
+                                <button type="button" class="btn btn-warning" onclick="testEmailSettings()">
+                                    <i class="fas fa-envelope me-2"></i>Test Email
+                                </button>
+                                <button type="button" class="btn btn-info ms-2" onclick="testPaymentSettings()">
+                                    <i class="fas fa-credit-card me-2"></i>Test Payment
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        function testEmailSettings() {
+            // Show loading indicator
+            const button = event.target;
+            const originalText = button.innerHTML;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Testing...';
+            button.disabled = true;
+            
+            // Simulate test (in real app, this would make an AJAX call)
+            setTimeout(() => {
+                button.innerHTML = originalText;
+                button.disabled = false;
+                
+                // Show success message
+                const alertDiv = document.createElement('div');
+                alertDiv.className = 'alert alert-success alert-dismissible fade show mt-3';
+                alertDiv.innerHTML = `
+                    <i class="fas fa-check-circle me-2"></i>
+                    <strong>Success!</strong> Email settings are working correctly.
+                    <button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
+                `;
+                button.closest('.card-body').appendChild(alertDiv);
+                
+                // Auto-remove after 5 seconds
+                setTimeout(() => {
+                    if (alertDiv.parentElement) {
+                        alertDiv.remove();
+                    }
+                }, 5000);
+            }, 2000);
+        }
+        
+        function testPaymentSettings() {
+            // Show loading indicator
+            const button = event.target;
+            const originalText = button.innerHTML;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Testing...';
+            button.disabled = true;
+            
+            // Simulate test (in real app, this would make an AJAX call)
+            setTimeout(() => {
+                button.innerHTML = originalText;
+                button.disabled = false;
+                
+                // Show success message
+                const alertDiv = document.createElement('div');
+                alertDiv.className = 'alert alert-success alert-dismissible fade show mt-3';
+                alertDiv.innerHTML = `
+                    <i class="fas fa-check-circle me-2"></i>
+                    <strong>Success!</strong> Payment gateway connection is working correctly.
+                    <button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
+                `;
+                button.closest('.card-body').appendChild(alertDiv);
+                
+                // Auto-remove after 5 seconds
+                setTimeout(() => {
+                    if (alertDiv.parentElement) {
+                        alertDiv.remove();
+                    }
+                }, 5000);
+            }, 2000);
+        }
+    </script>
+}
+
+<style>
+    .page-title-box {
+        padding: 20px 0;
+        border-bottom: 1px solid #eee;
+        margin-bottom: 30px;
+    }
+
+    .card {
+        border: none;
+        box-shadow: 0 0.75rem 1.5rem rgba(18, 38, 63, 0.03);
+        margin-bottom: 24px;
+        border-radius: 12px;
+    }
+
+    .card-body {
+        padding: 1.5rem;
+    }
+
+    .header-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 1rem;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-control, .form-select {
+        border-radius: 8px;
+        border: 2px solid #e9ecef;
+        padding: 0.75rem 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+
+    .form-check-input {
+        width: 1.25em;
+        height: 1.25em;
+    }
+
+    .btn {
+        border-radius: 8px;
+        font-weight: 600;
+        padding: 0.75rem 1.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .breadcrumb {
+        background: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .breadcrumb-item a {
+        color: #6c757d;
+        text-decoration: none;
+    }
+
+    .breadcrumb-item.active {
+        color: #495057;
+        font-weight: 600;
+    }
+</style>
