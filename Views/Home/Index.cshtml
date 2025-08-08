@@ -145,32 +145,37 @@
             </div>
             
             <div class="row g-4 justify-content-center">
-                @foreach (var plan in Model.PopularPlans)
+                @foreach (var plan in Model.PopularPlans.Take(3))
                 {
                     <div class="col-lg-4 col-md-6">
-                        <div class="card feature-card h-100 position-relative">
+                        <div class="card feature-card h-100 position-relative @(plan.IsPopular ? "border-warning" : "")">
                             @if (plan.IsPopular)
                             {
                                 <div class="position-absolute top-0 start-50 translate-middle">
-                                    <span class="badge bg-warning text-dark px-3 py-2">Most Popular</span>
+                                    <span class="badge bg-warning text-dark px-3 py-2 fw-bold">🌟 Most Popular</span>
                                 </div>
                             }
-                            <div class="card-body text-center p-4">
-                                <h5 class="card-title">@plan.Name</h5>
+                            <div class="card-body text-center p-4 @(plan.IsPopular ? "pt-5" : "")">
+                                <h5 class="card-title fw-bold">@plan.Name</h5>
                                 <div class="mb-3">
                                     <span class="display-6 fw-bold text-primary">$@plan.Price.ToString("N0")</span>
                                     <span class="text-muted">/@plan.Duration.ToString().ToLower()</span>
                                 </div>
-                                <p class="card-text">@plan.Description</p>
-                                <ul class="list-unstyled">
-                                    <li><span class="icon-check"></span>Up to @plan.MaxUsers users</li>
-                                    <li><span class="icon-check"></span>@(plan.MaxStorage / 1024)GB storage</li>
-                                    <li><span class="icon-check"></span>Email support</li>
+                                <p class="card-text text-muted">@plan.Description</p>
+                                <ul class="list-unstyled text-start">
+                                    <li class="mb-2"><span class="icon-check text-success me-2"></span>Up to @plan.MaxUsers users</li>
+                                    <li class="mb-2"><span class="icon-check text-success me-2"></span>@(plan.MaxStorage / 1024)GB storage</li>
+                                    <li class="mb-2"><span class="icon-check text-success me-2"></span>Email support</li>
+                                    @if (plan.IsPopular)
+                                    {
+                                        <li class="mb-2"><span class="icon-check text-success me-2"></span>Priority support</li>
+                                        <li class="mb-2"><span class="icon-check text-success me-2"></span>Advanced analytics</li>
+                                    }
                                 </ul>
                             </div>
-                            <div class="card-footer bg-transparent">
-                                <a href="@Url.Action("Register", "Account")" class="btn btn-primary w-100">
-                                    Get Started
+                            <div class="card-footer bg-transparent p-4">
+                                <a href="@Url.Action("Register", "Account")" class="btn @(plan.IsPopular ? "btn-warning" : "btn-outline-primary") w-100 fw-bold">
+                                    @(plan.IsPopular ? "🚀 Get Started" : "Get Started")
                                 </a>
                             </div>
                         </div>

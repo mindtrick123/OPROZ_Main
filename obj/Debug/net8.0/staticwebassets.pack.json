@@ -5,6 +5,22 @@
       "PackagePath": "staticwebassets/css/site.css"
     },
     {
+      "Id": "/home/runner/work/OPROZ_Main/OPROZ_Main/wwwroot/images/blog/cloud-security.svg",
+      "PackagePath": "staticwebassets/images/blog/cloud-security.svg"
+    },
+    {
+      "Id": "/home/runner/work/OPROZ_Main/OPROZ_Main/wwwroot/images/blog/digital-transformation.svg",
+      "PackagePath": "staticwebassets/images/blog/digital-transformation.svg"
+    },
+    {
+      "Id": "/home/runner/work/OPROZ_Main/OPROZ_Main/wwwroot/images/blog/saas-trends-2024.svg",
+      "PackagePath": "staticwebassets/images/blog/saas-trends-2024.svg"
+    },
+    {
+      "Id": "/home/runner/work/OPROZ_Main/OPROZ_Main/wwwroot/images/blog/tech-stack.svg",
+      "PackagePath": "staticwebassets/images/blog/tech-stack.svg"
+    },
+    {
       "Id": "/home/runner/work/OPROZ_Main/OPROZ_Main/wwwroot/js/site.js",
       "PackagePath": "staticwebassets/js/site.js"
     },

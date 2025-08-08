@@ -88,6 +88,14 @@ namespace OPROZ_Main.Controllers
 
             if (ModelState.IsValid)
             {
+                // Check if user already exists
+                var existingUser = await _userManager.FindByEmailAsync(model.Email);
+                if (existingUser != null)
+                {
+                    ModelState.AddModelError(string.Empty, "A user with this email address already exists.");
+                    return View(model);
+                }
+
                 var user = new ApplicationUser
                 {
                     UserName = model.Email,
