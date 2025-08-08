@@ -1,36 +1,40 @@
-@model LoginViewModel
+@model AdminLoginViewModel
 @{
-    ViewData["Title"] = "Login";
+    ViewData["Title"] = "Admin Login";
 }
 
-<section class="py-5" style="background: linear-gradient(135deg, #007bff 0%, #0056b3 100%); min-height: calc(100vh - 76px);">
+<section class="py-5" style="background: linear-gradient(135deg, #dc3545 0%, #8b1538 100%); min-height: calc(100vh - 76px);">
     <div class="container">
         <div class="row justify-content-center align-items-center" style="min-height: calc(100vh - 200px);">
             <div class="col-md-6 col-lg-5 col-xl-4">
                 <div class="card shadow-lg border-0" style="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px);">
                     <div class="card-body p-5">
                         <div class="text-center mb-4">
-                            <div class="user-icon mb-3" style="font-size: 3rem; color: #007bff;">
-                                👤
+                            <div class="admin-icon mb-3" style="font-size: 3rem; color: #dc3545;">
+                                🛡️
                             </div>
-                            <h2 class="fw-bold text-primary">Welcome Back</h2>
-                            <p class="text-muted">Sign in to your OPROZ account</p>
+                            <h2 class="fw-bold text-danger">Administrator Access</h2>
+                            <p class="text-muted">Secure login for system administrators</p>
+                            <div class="alert alert-warning alert-sm py-2 px-3 mb-3" style="font-size: 0.875rem;">
+                                <i class="fas fa-exclamation-triangle me-1"></i>
+                                Administrative privileges required
+                            </div>
                         </div>
 
-                        <form asp-action="Login" asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post" class="needs-validation" novalidate>
+                        <form asp-action="AdminLogin" asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post" class="needs-validation" novalidate>
                             <div asp-validation-summary="All" class="alert alert-danger" role="alert" style="display: none;"></div>
                             
                             <div class="mb-3">
                                 <label asp-for="Email" class="form-label fw-semibold">
-                                    <i class="fas fa-envelope me-1"></i>Email Address
+                                    <i class="fas fa-user-shield me-1"></i>Administrator Email
                                 </label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-light">
-                                        <i class="fas fa-at text-muted"></i>
+                                        <i class="fas fa-envelope text-muted"></i>
                                     </span>
                                     <input asp-for="Email" 
                                            class="form-control form-control-lg" 
-                                           placeholder="Enter your email address" 
+                                           placeholder="Enter admin email address" 
                                            autocomplete="email"
                                            autofocus 
                                            required>
@@ -59,13 +63,13 @@
                                 <div class="form-check">
                                     <input asp-for="RememberMe" class="form-check-input" id="rememberMe">
                                     <label asp-for="RememberMe" class="form-check-label" for="rememberMe">
-                                        Remember me on this device
+                                        Keep me signed in on this device
                                     </label>
                                 </div>
                             </div>
                             
-                            <button type="submit" class="btn btn-primary btn-lg w-100 mb-3" style="background: linear-gradient(45deg, #007bff, #0056b3); border: none; box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);">
-                                <i class="fas fa-sign-in-alt me-2"></i>Sign In
+                            <button type="submit" class="btn btn-danger btn-lg w-100 mb-3" style="background: linear-gradient(45deg, #dc3545, #c82333); border: none; box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);">
+                                <i class="fas fa-shield-alt me-2"></i>Access Admin Panel
                             </button>
                         </form>
 
@@ -79,9 +83,9 @@
 
                         <div class="text-center">
                             <p class="mb-0 small text-muted">
-                                Don't have an account? 
-                                <a asp-action="Register" asp-route-returnUrl="@ViewData["ReturnUrl"]" class="text-decoration-none fw-bold text-primary">
-                                    <i class="fas fa-user-plus me-1"></i>Create one
+                                Need user access? 
+                                <a asp-action="Login" asp-route-returnUrl="@ViewData["ReturnUrl"]" class="text-decoration-none fw-bold text-primary">
+                                    <i class="fas fa-user me-1"></i>Regular Login
                                 </a>
                             </p>
                         </div>
@@ -102,13 +106,14 @@
 </section>
 
 <style>
-    .user-icon {
-        animation: bounce 2s infinite;
+    .admin-icon {
+        animation: pulse 2s infinite;
     }
     
-    @@keyframes bounce {
-        0%, 100% { transform: translateY(0); }
-        50% { transform: translateY(-5px); }
+    @@keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
     }
     
     .input-group-text {
@@ -120,13 +125,13 @@
     }
     
     .input-group:focus-within .input-group-text {
-        border-color: #007bff;
-        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        border-color: #dc3545;
+        box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
     }
     
     .input-group:focus-within .form-control {
-        border-color: #007bff;
-        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        border-color: #dc3545;
+        box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
     }
     
     @@media (max-width: 768px) {
@@ -134,7 +139,7 @@
             padding: 2rem !important;
         }
         
-        .user-icon {
+        .admin-icon {
             font-size: 2.5rem !important;
         }
     }
