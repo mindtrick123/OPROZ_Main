@@ -403,6 +403,156 @@ namespace OPROZ_Main.Controllers
             return View(model);
         }
 
+        [HttpGet]
+        public IActionResult AdminForgotPassword()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AdminForgotPassword(AdminForgotPasswordViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var user = await _userManager.FindByEmailAsync(model.Email);
+                if (user == null)
+                {
+                    // Don't reveal that the user does not exist
+                    return RedirectToAction(nameof(AdminForgotPasswordConfirmation));
+                }
+
+                // Check if user has admin role
+                var roles = await _userManager.GetRolesAsync(user);
+                if (!roles.Contains("Admin") && !roles.Contains("Manager"))
+                {
+                    // Don't reveal that the user is not an admin
+                    return RedirectToAction(nameof(AdminForgotPasswordConfirmation));
+                }
+
+                var code = await _userManager.GeneratePasswordResetTokenAsync(user);
+                var callbackUrl = Url.Action(nameof(AdminResetPassword), "Account",
+                    new { userId = user.Id, code = code }, protocol: HttpContext.Request.Scheme);
+
+                try
+                {
+                    await _emailService.SendPasswordResetAsync(model.Email, callbackUrl!);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error sending admin password reset email to {Email}", model.Email);
+                    TempData["Error"] = "Error sending password reset email. Please try again.";
+                    return View(model);
+                }
+
+                return RedirectToAction(nameof(AdminForgotPasswordConfirmation));
+            }
+
+            return View(model);
+        }
+
+        [HttpGet]
+        public IActionResult AdminForgotPasswordConfirmation()
+        {
+            return View();
+        }
+
+        [HttpGet]
+        public IActionResult AdminResetPassword(string? code = null)
+        {
+            if (code == null)
+            {
+                throw new ApplicationException("A code must be supplied for admin password reset.");
+            }
+
+            var model = new AdminResetPasswordFormViewModel { Code = code };
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AdminResetPassword(AdminResetPasswordFormViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var user = await _userManager.FindByEmailAsync(model.Email);
+            if (user == null)
+            {
+                // Don't reveal that the user does not exist
+                return RedirectToAction(nameof(AdminResetPasswordConfirmation));
+            }
+
+            // Verify user has admin role
+            var roles = await _userManager.GetRolesAsync(user);
+            if (!roles.Contains("Admin") && !roles.Contains("Manager"))
+            {
+                // Don't reveal that the user is not an admin
+                return RedirectToAction(nameof(AdminResetPasswordConfirmation));
+            }
+
+            var result = await _userManager.ResetPasswordAsync(user, model.Code, model.Password);
+            if (result.Succeeded)
+            {
+                _logger.LogInformation("Admin {Email} reset their password successfully.", model.Email);
+                return RedirectToAction(nameof(AdminResetPasswordConfirmation));
+            }
+
+            foreach (var error in result.Errors)
+            {
+                ModelState.AddModelError(string.Empty, error.Description);
+            }
+
+            return View();
+        }
+
+        [HttpGet]
+        public IActionResult AdminResetPasswordConfirmation()
+        {
+            return View();
+        }
+
+        [HttpGet]
+        [Route("api/Account/GetCurrentUserInfo")]
+        public async Task<IActionResult> GetCurrentUserInfo()
+        {
+            if (!User.Identity?.IsAuthenticated == true)
+            {
+                return Json(new { isAuthenticated = false });
+            }
+
+            try
+            {
+                var user = await _userManager.GetUserAsync(User);
+                if (user == null)
+                {
+                    return Json(new { isAuthenticated = false });
+                }
+
+                var roles = await _userManager.GetRolesAsync(user);
+                var displayName = $"{user.FirstName} {user.LastName}".Trim();
+                if (string.IsNullOrEmpty(displayName))
+                {
+                    displayName = user.Email?.Split('@')[0] ?? "User";
+                }
+
+                return Json(new
+                {
+                    isAuthenticated = true,
+                    displayName = displayName,
+                    email = user.Email,
+                    isAdmin = roles.Contains("Admin") || roles.Contains("Manager")
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting current user info");
+                return Json(new { isAuthenticated = false });
+            }
+        }
+
         private IActionResult RedirectToLocal(string? returnUrl)
         {
             if (Url.IsLocalUrl(returnUrl))
