@@ -1,0 +1,426 @@
+@model OPROZ_Main.ViewModels.AdminDashboardViewModel
+@{
+    ViewData["Title"] = "Admin Dashboard";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="page-title-box">
+                <h4 class="page-title">Admin Dashboard</h4>
+                <div class="page-title-right">
+                    <ol class="breadcrumb m-0">
+                        <li class="breadcrumb-item"><a href="javascript: void(0);">OPROZ</a></li>
+                        <li class="breadcrumb-item active">Dashboard</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Metrics Row -->
+    <div class="row">
+        <div class="col-xl-3 col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <div class="dropdown float-end">
+                        <a href="#" class="dropdown-toggle arrow-none card-drop" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="mdi mdi-dots-vertical"></i>
+                        </a>
+                    </div>
+                    <h4 class="header-title mt-0 mb-4">Active Subscriptions</h4>
+                    <div class="widget-chart-1">
+                        <div class="widget-chart-box-1 float-start" dir="ltr">
+                            <i class="mdi mdi-account-multiple text-primary"></i>
+                        </div>
+                        <div class="widget-detail-1 text-end">
+                            <h2 class="fw-normal pt-2 mb-1">@Model.Metrics.ActiveSubscriptions</h2>
+                            <p class="text-muted mb-1">Active Users</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <div class="dropdown float-end">
+                        <a href="#" class="dropdown-toggle arrow-none card-drop" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="mdi mdi-dots-vertical"></i>
+                        </a>
+                    </div>
+                    <h4 class="header-title mt-0 mb-4">Monthly Revenue</h4>
+                    <div class="widget-chart-1">
+                        <div class="widget-chart-box-1 float-start" dir="ltr">
+                            <i class="mdi mdi-currency-usd text-success"></i>
+                        </div>
+                        <div class="widget-detail-1 text-end">
+                            <h2 class="fw-normal pt-2 mb-1">$@Model.Metrics.MonthlyRevenue.ToString("N0")</h2>
+                            <p class="text-muted mb-1">This Month</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <div class="dropdown float-end">
+                        <a href="#" class="dropdown-toggle arrow-none card-drop" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="mdi mdi-dots-vertical"></i>
+                        </a>
+                    </div>
+                    <h4 class="header-title mt-0 mb-4">New Users</h4>
+                    <div class="widget-chart-1">
+                        <div class="widget-chart-box-1 float-start" dir="ltr">
+                            <i class="mdi mdi-account-plus text-info"></i>
+                        </div>
+                        <div class="widget-detail-1 text-end">
+                            <h2 class="fw-normal pt-2 mb-1">@Model.Metrics.NewUsersThisMonth</h2>
+                            <p class="text-muted mb-1">This Month</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <div class="dropdown float-end">
+                        <a href="#" class="dropdown-toggle arrow-none card-drop" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="mdi mdi-dots-vertical"></i>
+                        </a>
+                    </div>
+                    <h4 class="header-title mt-0 mb-4">Churn Rate</h4>
+                    <div class="widget-chart-1">
+                        <div class="widget-chart-box-1 float-start" dir="ltr">
+                            <i class="mdi mdi-trending-down text-warning"></i>
+                        </div>
+                        <div class="widget-detail-1 text-end">
+                            <h2 class="fw-normal pt-2 mb-1">@Model.Metrics.ChurnRate.ToString("F1")%</h2>
+                            <p class="text-muted mb-1">This Month</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row">
+        <div class="col-xl-6">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="header-title mb-3">Revenue Trend</h4>
+                    <div id="revenue-chart" style="height: 300px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-6">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="header-title mb-3">Subscription Trend</h4>
+                    <div id="subscription-chart" style="height: 300px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Service Usage and Recent Activities -->
+    <div class="row">
+        <div class="col-xl-6">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="header-title mb-3">Service Usage</h4>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-centered mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Service</th>
+                                    <th>Plan Type</th>
+                                    <th>Subscriptions</th>
+                                    <th>Revenue</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var service in Model.ServiceUsageData.Take(10))
+                                {
+                                    <tr>
+                                        <td>@service.ServiceName</td>
+                                        <td><span class="badge bg-primary">@service.PlanType</span></td>
+                                        <td>@service.SubscriptionCount</td>
+                                        <td>$@service.Revenue.ToString("N0")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-6">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="header-title mb-3">Recent Activities</h4>
+                    <div class="timeline-alt">
+                        @foreach (var activity in Model.RecentActivities.Take(10))
+                        {
+                            <div class="timeline-item">
+                                <i class="mdi mdi-circle bg-primary timeline-icon"></i>
+                                <div class="timeline-item-info">
+                                    <h5 class="mt-0 mb-1">@activity.Action</h5>
+                                    <p class="font-14">@activity.UserName - @activity.Details</p>
+                                    <p class="text-muted font-12 mb-0 mt-2">@activity.Date.ToString("MMM dd, yyyy HH:mm")</p>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Issues and Expiring Subscriptions -->
+    <div class="row">
+        <div class="col-xl-6">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="header-title mb-3">Payment Issues</h4>
+                    @if (Model.PaymentIssues.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-sm table-centered mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>User</th>
+                                        <th>Plan</th>
+                                        <th>Amount</th>
+                                        <th>Status</th>
+                                        <th>Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var issue in Model.PaymentIssues)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <strong>@issue.UserName</strong><br />
+                                                <small class="text-muted">@issue.Email</small>
+                                            </td>
+                                            <td>@issue.PlanName</td>
+                                            <td>$@issue.Amount</td>
+                                            <td>
+                                                <span class="badge bg-danger">@issue.Status</span>
+                                            </td>
+                                            <td>@issue.PaymentDate.ToString("MMM dd")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted">No payment issues found.</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-6">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="header-title mb-3">Expiring Subscriptions (30 days)</h4>
+                    @if (Model.ExpiringSubscriptions.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-sm table-centered mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>User</th>
+                                        <th>Plan</th>
+                                        <th>Days Left</th>
+                                        <th>Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var subscription in Model.ExpiringSubscriptions)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <strong>@subscription.UserName</strong><br />
+                                                <small class="text-muted">@subscription.Email</small>
+                                            </td>
+                                            <td>@subscription.PlanName</td>
+                                            <td>
+                                                <span class="badge @(subscription.DaysRemaining <= 7 ? "bg-danger" : subscription.DaysRemaining <= 14 ? "bg-warning" : "bg-info")">
+                                                    @subscription.DaysRemaining days
+                                                </span>
+                                            </td>
+                                            <td>$@subscription.Amount</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted">No expiring subscriptions found.</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="header-title mb-3">Quick Actions</h4>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <a href="@Url.Action("Users", "Admin")" class="btn btn-primary btn-block">
+                                <i class="mdi mdi-account-group"></i> Manage Users
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="@Url.Action("Reports", "Admin")" class="btn btn-success btn-block">
+                                <i class="mdi mdi-file-chart"></i> Generate Reports
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="#" class="btn btn-info btn-block">
+                                <i class="mdi mdi-cog"></i> System Settings
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="#" class="btn btn-warning btn-block">
+                                <i class="mdi mdi-bell"></i> Notifications
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Revenue Chart
+        const revenueCtx = document.getElementById('revenue-chart').getContext('2d');
+        const revenueData = @Html.Raw(Json.Serialize(Model.RevenueChartData));
+        
+        new Chart(revenueCtx, {
+            type: 'line',
+            data: {
+                labels: revenueData.map(d => d.label),
+                datasets: [{
+                    label: 'Revenue ($)',
+                    data: revenueData.map(d => d.value),
+                    borderColor: 'rgb(75, 192, 192)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return '$' + value.toLocaleString();
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Subscription Chart
+        const subscriptionCtx = document.getElementById('subscription-chart').getContext('2d');
+        const subscriptionData = @Html.Raw(Json.Serialize(Model.SubscriptionChartData));
+        
+        new Chart(subscriptionCtx, {
+            type: 'bar',
+            data: {
+                labels: subscriptionData.map(d => d.label),
+                datasets: [{
+                    label: 'New Subscriptions',
+                    data: subscriptionData.map(d => d.value),
+                    backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+}
+
+<style>
+    .timeline-alt {
+        position: relative;
+        padding: 0;
+    }
+
+    .timeline-item {
+        position: relative;
+        padding-left: 31px;
+        margin-bottom: 20px;
+    }
+
+    .timeline-icon {
+        position: absolute;
+        left: 0;
+        top: 4px;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        font-size: 8px;
+        line-height: 16px;
+        text-align: center;
+    }
+
+    .timeline-item-info h5 {
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .page-title-box {
+        padding: 20px 0;
+    }
+
+    .card {
+        border: none;
+        box-shadow: 0 0.75rem 1.5rem rgba(18, 38, 63, 0.03);
+        margin-bottom: 24px;
+    }
+
+    .btn-block {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+</style>

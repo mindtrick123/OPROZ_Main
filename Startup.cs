@@ -85,6 +85,10 @@ namespace OPROZ_Main
             // Add custom services
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<INotificationService, NotificationService>();
+            services.AddScoped<IAnalyticsService, AnalyticsService>();
+            services.AddScoped<IReportingService, ReportingService>();
+            services.AddScoped<IUserManagementService, UserManagementService>();
+            services.AddScoped<IAuditLogService, AuditLogService>();
 
             // Add MVC
             services.AddControllersWithViews(options =>
