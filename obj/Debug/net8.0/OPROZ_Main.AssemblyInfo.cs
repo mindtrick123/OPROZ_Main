@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("OPROZ_Main")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+87de1753fe35f8966384467ceef2fbaabb362fa1")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1b3b2a4d9b2a59d6be229185c54cf5c224fdb587")]
 [assembly: System.Reflection.AssemblyProductAttribute("OPROZ_Main")]
 [assembly: System.Reflection.AssemblyTitleAttribute("OPROZ_Main")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

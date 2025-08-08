@@ -1037,5 +1037,405 @@ namespace OPROZ_Main.Controllers
         {
             return await _context.Services.AnyAsync(e => e.Id == id);
         }
+
+        // Help Queries Management
+        public async Task<IActionResult> HelpQueries(string? search, int page = 1, QueryStatus? status = null, QueryPriority? priority = null, string? category = null)
+        {
+            try
+            {
+                var query = _context.HelpQueries.Include(h => h.User).AsQueryable();
+
+                if (!string.IsNullOrEmpty(search))
+                {
+                    query = query.Where(h => h.Subject.Contains(search) || h.Message.Contains(search) || h.Name.Contains(search) || h.Email.Contains(search));
+                }
+
+                if (status.HasValue)
+                {
+                    query = query.Where(h => h.Status == status.Value);
+                }
+
+                if (priority.HasValue)
+                {
+                    query = query.Where(h => h.Priority == priority.Value);
+                }
+
+                if (!string.IsNullOrEmpty(category))
+                {
+                    query = query.Where(h => h.Category == category);
+                }
+
+                query = query.OrderByDescending(h => h.CreatedAt);
+
+                var pageSize = 15;
+                var totalCount = await query.CountAsync();
+                var helpQueries = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+
+                // Get available categories
+                var categories = await _context.HelpQueries
+                    .Where(h => !string.IsNullOrEmpty(h.Category))
+                    .Select(h => h.Category!)
+                    .Distinct()
+                    .ToListAsync();
+
+                ViewBag.Search = search;
+                ViewBag.Status = status;
+                ViewBag.Priority = priority;
+                ViewBag.Category = category;
+                ViewBag.Categories = categories;
+                ViewBag.CurrentPage = page;
+                ViewBag.TotalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+                ViewBag.TotalCount = totalCount;
+
+                return View(helpQueries);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading help queries");
+                TempData["Error"] = "Error loading help queries. Please try again.";
+                return View(new List<HelpQuery>());
+            }
+        }
+
+        public async Task<IActionResult> HelpQueryDetails(int id)
+        {
+            try
+            {
+                var helpQuery = await _context.HelpQueries
+                    .Include(h => h.User)
+                    .FirstOrDefaultAsync(h => h.Id == id);
+
+                if (helpQuery == null)
+                    return NotFound();
+
+                return View(helpQuery);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading help query details for {QueryId}", id);
+                TempData["Error"] = "Error loading help query details. Please try again.";
+                return RedirectToAction(nameof(HelpQueries));
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateHelpQuery(int id, QueryStatus status, QueryPriority priority, string? category, string? adminResponse)
+        {
+            try
+            {
+                var helpQuery = await _context.HelpQueries.FindAsync(id);
+                if (helpQuery == null)
+                    return NotFound();
+
+                helpQuery.Status = status;
+                helpQuery.Priority = priority;
+                helpQuery.Category = category;
+                helpQuery.AdminResponse = adminResponse;
+                helpQuery.UpdatedAt = DateTime.UtcNow;
+
+                if (status == QueryStatus.Resolved && helpQuery.ResolvedAt == null)
+                {
+                    helpQuery.ResolvedAt = DateTime.UtcNow;
+                }
+
+                await _context.SaveChangesAsync();
+
+                var currentUser = await _userManager.GetUserAsync(User);
+                await _auditLogService.LogUserActionAsync(
+                    currentUser?.Id,
+                    currentUser?.Email,
+                    "Update Help Query",
+                    $"Updated help query #{id} - Status: {status}, Priority: {priority}",
+                    Request.HttpContext.Connection.RemoteIpAddress?.ToString()
+                );
+
+                TempData["Success"] = "Help query updated successfully.";
+                return RedirectToAction(nameof(HelpQueryDetails), new { id });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating help query {QueryId}", id);
+                TempData["Error"] = "Error updating help query. Please try again.";
+                return RedirectToAction(nameof(HelpQueryDetails), new { id });
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> BulkUpdateHelpQueries(int[] queryIds, string action, string? value)
+        {
+            try
+            {
+                if (queryIds == null || queryIds.Length == 0)
+                    return Json(new { success = false, message = "No queries selected." });
+
+                var queries = await _context.HelpQueries.Where(q => queryIds.Contains(q.Id)).ToListAsync();
+                int updatedCount = 0;
+
+                foreach (var query in queries)
+                {
+                    switch (action.ToLower())
+                    {
+                        case "status":
+                            if (Enum.TryParse<QueryStatus>(value, out var status))
+                            {
+                                query.Status = status;
+                                query.UpdatedAt = DateTime.UtcNow;
+                                if (status == QueryStatus.Resolved && query.ResolvedAt == null)
+                                    query.ResolvedAt = DateTime.UtcNow;
+                                updatedCount++;
+                            }
+                            break;
+                        case "priority":
+                            if (Enum.TryParse<QueryPriority>(value, out var priority))
+                            {
+                                query.Priority = priority;
+                                query.UpdatedAt = DateTime.UtcNow;
+                                updatedCount++;
+                            }
+                            break;
+                        case "category":
+                            query.Category = value;
+                            query.UpdatedAt = DateTime.UtcNow;
+                            updatedCount++;
+                            break;
+                    }
+                }
+
+                await _context.SaveChangesAsync();
+
+                var currentUser = await _userManager.GetUserAsync(User);
+                await _auditLogService.LogUserActionAsync(
+                    currentUser?.Id,
+                    currentUser?.Email,
+                    "Bulk Update Help Queries",
+                    $"Updated {updatedCount} help queries - Action: {action}, Value: {value}",
+                    Request.HttpContext.Connection.RemoteIpAddress?.ToString()
+                );
+
+                return Json(new { success = true, message = $"Successfully updated {updatedCount} help queries." });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error bulk updating help queries");
+                return Json(new { success = false, message = "Error updating help queries. Please try again." });
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DeleteHelpQuery(int id)
+        {
+            try
+            {
+                var helpQuery = await _context.HelpQueries.FindAsync(id);
+                if (helpQuery == null)
+                    return Json(new { success = false, message = "Help query not found." });
+
+                _context.HelpQueries.Remove(helpQuery);
+                await _context.SaveChangesAsync();
+
+                var currentUser = await _userManager.GetUserAsync(User);
+                await _auditLogService.LogUserActionAsync(
+                    currentUser?.Id,
+                    currentUser?.Email,
+                    "Delete Help Query",
+                    $"Deleted help query #{id} from {helpQuery.Email}",
+                    Request.HttpContext.Connection.RemoteIpAddress?.ToString()
+                );
+
+                return Json(new { success = true, message = "Help query deleted successfully." });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting help query {QueryId}", id);
+                return Json(new { success = false, message = "Error deleting help query. Please try again." });
+            }
+        }
+
+        // Companies Management
+        public async Task<IActionResult> Companies(string? search, int page = 1, bool? isActive = null)
+        {
+            try
+            {
+                var query = _context.Companies.Include(c => c.Users).Include(c => c.PaymentHistories).AsQueryable();
+
+                if (!string.IsNullOrEmpty(search))
+                {
+                    query = query.Where(c => c.Name.Contains(search) || c.Description!.Contains(search) || c.Website!.Contains(search));
+                }
+
+                if (isActive.HasValue)
+                {
+                    query = query.Where(c => c.IsActive == isActive.Value);
+                }
+
+                query = query.OrderByDescending(c => c.CreatedAt);
+
+                var pageSize = 10;
+                var totalCount = await query.CountAsync();
+                var companies = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+
+                ViewBag.Search = search;
+                ViewBag.IsActive = isActive;
+                ViewBag.CurrentPage = page;
+                ViewBag.TotalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+                ViewBag.TotalCount = totalCount;
+
+                return View(companies);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading companies");
+                TempData["Error"] = "Error loading companies. Please try again.";
+                return View(new List<Company>());
+            }
+        }
+
+        public async Task<IActionResult> CompanyDetails(int id)
+        {
+            try
+            {
+                var company = await _context.Companies
+                    .Include(c => c.Users)
+                    .Include(c => c.PaymentHistories)
+                    .FirstOrDefaultAsync(c => c.Id == id);
+
+                if (company == null)
+                    return NotFound();
+
+                return View(company);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading company details for {CompanyId}", id);
+                TempData["Error"] = "Error loading company details. Please try again.";
+                return RedirectToAction(nameof(Companies));
+            }
+        }
+
+        public IActionResult CreateCompany()
+        {
+            return View(new Company());
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateCompany(Company company)
+        {
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    company.CreatedAt = DateTime.UtcNow;
+                    _context.Companies.Add(company);
+                    await _context.SaveChangesAsync();
+
+                    var currentUser = await _userManager.GetUserAsync(User);
+                    await _auditLogService.LogUserActionAsync(
+                        currentUser?.Id,
+                        currentUser?.Email,
+                        "Create Company",
+                        $"Created company: {company.Name}",
+                        Request.HttpContext.Connection.RemoteIpAddress?.ToString()
+                    );
+
+                    TempData["Success"] = "Company created successfully.";
+                    return RedirectToAction(nameof(Companies));
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error creating company");
+                    TempData["Error"] = "Error creating company. Please try again.";
+                }
+            }
+
+            return View(company);
+        }
+
+        public async Task<IActionResult> EditCompany(int id)
+        {
+            try
+            {
+                var company = await _context.Companies.FindAsync(id);
+                if (company == null)
+                    return NotFound();
+
+                return View(company);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading company for edit {CompanyId}", id);
+                TempData["Error"] = "Error loading company. Please try again.";
+                return RedirectToAction(nameof(Companies));
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditCompany(int id, Company company)
+        {
+            if (id != company.Id)
+                return NotFound();
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    company.UpdatedAt = DateTime.UtcNow;
+                    _context.Update(company);
+                    await _context.SaveChangesAsync();
+
+                    var currentUser = await _userManager.GetUserAsync(User);
+                    await _auditLogService.LogUserActionAsync(
+                        currentUser?.Id,
+                        currentUser?.Email,
+                        "Update Company",
+                        $"Updated company: {company.Name}",
+                        Request.HttpContext.Connection.RemoteIpAddress?.ToString()
+                    );
+
+                    TempData["Success"] = "Company updated successfully.";
+                    return RedirectToAction(nameof(Companies));
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error updating company {CompanyId}", id);
+                    TempData["Error"] = "Error updating company. Please try again.";
+                }
+            }
+
+            return View(company);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ToggleCompanyStatus(int id)
+        {
+            try
+            {
+                var company = await _context.Companies.FindAsync(id);
+                if (company == null)
+                    return Json(new { success = false, message = "Company not found." });
+
+                company.IsActive = !company.IsActive;
+                company.UpdatedAt = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
+
+                var currentUser = await _userManager.GetUserAsync(User);
+                await _auditLogService.LogUserActionAsync(
+                    currentUser?.Id,
+                    currentUser?.Email,
+                    "Toggle Company Status",
+                    $"Set company {company.Name} status to {(company.IsActive ? "Active" : "Inactive")}",
+                    Request.HttpContext.Connection.RemoteIpAddress?.ToString()
+                );
+
+                return Json(new { success = true, message = $"Company {(company.IsActive ? "activated" : "deactivated")} successfully.", isActive = company.IsActive });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error toggling company status {CompanyId}", id);
+                return Json(new { success = false, message = "Error updating company status. Please try again." });
+            }
+        }
     }
 }

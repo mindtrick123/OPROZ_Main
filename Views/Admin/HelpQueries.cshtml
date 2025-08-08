@@ -1,0 +1,530 @@
+@model IEnumerable<OPROZ_Main.Models.HelpQuery>
+@{
+    ViewData["Title"] = "Help Queries Management";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="page-title-box">
+                <h4 class="page-title">Help Queries Management</h4>
+                <div class="page-title-right">
+                    <ol class="breadcrumb m-0">
+                        <li class="breadcrumb-item"><a href="@Url.Action("Index", "Admin")">Admin</a></li>
+                        <li class="breadcrumb-item active">Help Queries</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-3">
+        @{
+            var totalQueries = Model?.Count() ?? 0;
+            var openQueries = Model?.Count(q => q.Status == OPROZ_Main.Models.QueryStatus.Open) ?? 0;
+            var inProgressQueries = Model?.Count(q => q.Status == OPROZ_Main.Models.QueryStatus.InProgress) ?? 0;
+            var criticalQueries = Model?.Count(q => q.Priority == OPROZ_Main.Models.QueryPriority.Critical) ?? 0;
+        }
+        <div class="col-xl-3 col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="header-title">Total Queries</h4>
+                    <h2 class="text-primary">@ViewBag.TotalCount</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="header-title">Open</h4>
+                    <h2 class="text-warning">@openQueries</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="header-title">In Progress</h4>
+                    <h2 class="text-info">@inProgressQueries</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="header-title">Critical</h4>
+                    <h2 class="text-danger">@criticalQueries</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Bar -->
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <button type="button" class="btn btn-outline-primary" onclick="toggleBulkMode()">
+                <i class="fas fa-check-square me-2"></i>Bulk Actions
+            </button>
+            <div id="bulkActions" class="d-inline-block ms-2" style="display: none;">
+                <select class="form-select d-inline-block w-auto me-2" id="bulkAction">
+                    <option value="">Select Action</option>
+                    <option value="status">Change Status</option>
+                    <option value="priority">Change Priority</option>
+                    <option value="category">Set Category</option>
+                </select>
+                <select class="form-select d-inline-block w-auto me-2" id="bulkValue" style="display: none;">
+                    <option value="">Select Value</option>
+                </select>
+                <button type="button" class="btn btn-success btn-sm" onclick="applyBulkAction()">Apply</button>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="cancelBulkMode()">Cancel</button>
+            </div>
+        </div>
+        <div class="col-md-6 text-end">
+            <button class="btn btn-outline-success btn-sm" onclick="exportHelpQueries()">
+                <i class="fas fa-download me-1"></i>Export
+            </button>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-3">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label for="search" class="form-label">Search</label>
+                    <input type="text" class="form-control" id="search" name="search" value="@ViewBag.Search" placeholder="Subject, message, name, or email...">
+                </div>
+                <div class="col-md-2">
+                    <label for="status" class="form-label">Status</label>
+                    <select class="form-select" id="status" name="status">
+                        <option value="">All Status</option>
+                        @foreach (var statusValue in Enum.GetValues<OPROZ_Main.Models.QueryStatus>())
+                        {
+                            <option value="@statusValue" selected="@(ViewBag.Status?.ToString() == statusValue.ToString())">@statusValue</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="priority" class="form-label">Priority</label>
+                    <select class="form-select" id="priority" name="priority">
+                        <option value="">All Priorities</option>
+                        @foreach (var priorityValue in Enum.GetValues<OPROZ_Main.Models.QueryPriority>())
+                        {
+                            <option value="@priorityValue" selected="@(ViewBag.Priority?.ToString() == priorityValue.ToString())">@priorityValue</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="category" class="form-label">Category</label>
+                    <select class="form-select" id="category" name="category">
+                        <option value="">All Categories</option>
+                        @if (ViewBag.Categories != null)
+                        {
+                            @foreach (var cat in (List<string>)ViewBag.Categories)
+                            {
+                                <option value="@cat" selected="@(ViewBag.Category == cat)">@cat</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-outline-primary me-2">
+                        <i class="fas fa-search me-1"></i>Filter
+                    </button>
+                    <a href="@Url.Action("HelpQueries")" class="btn btn-outline-secondary">
+                        <i class="fas fa-times me-1"></i>Clear
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Help Queries Table -->
+    <div class="card">
+        <div class="card-body">
+            @if (Model != null && Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped">
+                        <thead class="table-dark">
+                            <tr>
+                                <th class="bulk-select" style="display: none;">
+                                    <input type="checkbox" id="selectAll" class="form-check-input">
+                                </th>
+                                <th>Query Details</th>
+                                <th>Contact Info</th>
+                                <th>Priority</th>
+                                <th>Status</th>
+                                <th>Category</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var query in Model)
+                            {
+                                <tr>
+                                    <td class="bulk-select" style="display: none;">
+                                        <input type="checkbox" name="selectedQueries" value="@query.Id" class="form-check-input query-checkbox">
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold">@query.Subject</div>
+                                        <small class="text-muted">
+                                            @(query.Message.Length > 100 ? query.Message.Substring(0, 100) + "..." : query.Message)
+                                        </small>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <strong>@query.Name</strong>
+                                            @if (query.User != null)
+                                            {
+                                                <span class="badge bg-info ms-1">User</span>
+                                            }
+                                        </div>
+                                        <div class="text-muted">@query.Email</div>
+                                        @if (!string.IsNullOrEmpty(query.Phone))
+                                        {
+                                            <div class="text-muted"><small>@query.Phone</small></div>
+                                        }
+                                    </td>
+                                    <td>
+                                        @switch (query.Priority)
+                                        {
+                                            case OPROZ_Main.Models.QueryPriority.Critical:
+                                                <span class="badge bg-danger">Critical</span>
+                                                break;
+                                            case OPROZ_Main.Models.QueryPriority.High:
+                                                <span class="badge bg-warning">High</span>
+                                                break;
+                                            case OPROZ_Main.Models.QueryPriority.Medium:
+                                                <span class="badge bg-info">Medium</span>
+                                                break;
+                                            case OPROZ_Main.Models.QueryPriority.Low:
+                                                <span class="badge bg-secondary">Low</span>
+                                                break;
+                                        }
+                                    </td>
+                                    <td>
+                                        @switch (query.Status)
+                                        {
+                                            case OPROZ_Main.Models.QueryStatus.Open:
+                                                <span class="badge bg-warning">Open</span>
+                                                break;
+                                            case OPROZ_Main.Models.QueryStatus.InProgress:
+                                                <span class="badge bg-info">In Progress</span>
+                                                break;
+                                            case OPROZ_Main.Models.QueryStatus.Resolved:
+                                                <span class="badge bg-success">Resolved</span>
+                                                break;
+                                            case OPROZ_Main.Models.QueryStatus.Closed:
+                                                <span class="badge bg-secondary">Closed</span>
+                                                break;
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(query.Category))
+                                        {
+                                            <span class="badge bg-light text-dark">@query.Category</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Uncategorized</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <div>@query.CreatedAt.ToString("MMM dd, yyyy")</div>
+                                        <small class="text-muted">@query.CreatedAt.ToString("HH:mm")</small>
+                                        @if (query.UpdatedAt.HasValue)
+                                        {
+                                            <div><small class="text-success">Updated: @query.UpdatedAt.Value.ToString("MMM dd")</small></div>
+                                        }
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="@Url.Action("HelpQueryDetails", new { id = query.Id })" class="btn btn-sm btn-outline-info" title="View Details">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-sm btn-outline-success" onclick="quickUpdate(@query.Id, 'InProgress')" title="Mark In Progress">
+                                                <i class="fas fa-play"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="quickUpdate(@query.Id, 'Resolved')" title="Mark Resolved">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteHelpQuery(@query.Id, '@query.Subject')" title="Delete">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                @if (ViewBag.TotalPages > 1)
+                {
+                    <nav aria-label="Help queries pagination">
+                        <ul class="pagination justify-content-center mt-3">
+                            @if (ViewBag.CurrentPage > 1)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" href="@Url.Action("HelpQueries", new { page = ViewBag.CurrentPage - 1, search = ViewBag.Search, status = ViewBag.Status, priority = ViewBag.Priority, category = ViewBag.Category })">Previous</a>
+                                </li>
+                            }
+
+                            @for (int i = Math.Max(1, ViewBag.CurrentPage - 2); i <= Math.Min(ViewBag.TotalPages, ViewBag.CurrentPage + 2); i++)
+                            {
+                                <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                                    <a class="page-link" href="@Url.Action("HelpQueries", new { page = i, search = ViewBag.Search, status = ViewBag.Status, priority = ViewBag.Priority, category = ViewBag.Category })">@i</a>
+                                </li>
+                            }
+
+                            @if (ViewBag.CurrentPage < ViewBag.TotalPages)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" href="@Url.Action("HelpQueries", new { page = ViewBag.CurrentPage + 1, search = ViewBag.Search, status = ViewBag.Status, priority = ViewBag.Priority, category = ViewBag.Category })">Next</a>
+                                </li>
+                            }
+                        </ul>
+                    </nav>
+                }
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-question-circle fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No help queries found</h5>
+                    <p class="text-muted">Try adjusting your filters or check back later for new queries.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete the help query "<span id="deleteQuerySubject"></span>"?</p>
+                <p class="text-danger"><small>This action cannot be undone.</small></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let deleteQueryId = 0;
+        let bulkMode = false;
+
+        function deleteHelpQuery(id, subject) {
+            deleteQueryId = id;
+            document.getElementById('deleteQuerySubject').textContent = subject;
+            new bootstrap.Modal(document.getElementById('deleteModal')).show();
+        }
+
+        document.getElementById('confirmDeleteBtn').addEventListener('click', function () {
+            if (deleteQueryId > 0) {
+                fetch('@Url.Action("DeleteHelpQuery")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                    },
+                    body: JSON.stringify({ id: deleteQueryId })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast('success', data.message);
+                        location.reload();
+                    } else {
+                        showToast('error', data.message);
+                    }
+                })
+                .catch(error => {
+                    showToast('error', 'An error occurred while deleting the help query.');
+                });
+
+                bootstrap.Modal.getInstance(document.getElementById('deleteModal')).hide();
+            }
+        });
+
+        function quickUpdate(id, status) {
+            fetch('@Url.Action("UpdateHelpQuery")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                },
+                body: `id=${id}&status=${status}&priority=Medium`
+            })
+            .then(response => {
+                if (response.ok) {
+                    showToast('success', `Query marked as ${status}`);
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    showToast('error', 'Failed to update query status');
+                }
+            })
+            .catch(error => {
+                showToast('error', 'An error occurred while updating the query.');
+            });
+        }
+
+        function toggleBulkMode() {
+            bulkMode = !bulkMode;
+            const bulkElements = document.querySelectorAll('.bulk-select');
+            const bulkActions = document.getElementById('bulkActions');
+            
+            bulkElements.forEach(el => {
+                el.style.display = bulkMode ? 'table-cell' : 'none';
+            });
+            
+            bulkActions.style.display = bulkMode ? 'inline-block' : 'none';
+        }
+
+        function cancelBulkMode() {
+            bulkMode = false;
+            const bulkElements = document.querySelectorAll('.bulk-select');
+            const bulkActions = document.getElementById('bulkActions');
+            
+            bulkElements.forEach(el => {
+                el.style.display = 'none';
+            });
+            
+            bulkActions.style.display = 'none';
+            
+            // Uncheck all checkboxes
+            document.querySelectorAll('.query-checkbox').forEach(cb => cb.checked = false);
+            document.getElementById('selectAll').checked = false;
+        }
+
+        // Handle select all checkbox
+        document.getElementById('selectAll').addEventListener('change', function() {
+            const checkboxes = document.querySelectorAll('.query-checkbox');
+            checkboxes.forEach(cb => cb.checked = this.checked);
+        });
+
+        // Handle bulk action dropdown
+        document.getElementById('bulkAction').addEventListener('change', function() {
+            const bulkValue = document.getElementById('bulkValue');
+            const action = this.value;
+            
+            if (action) {
+                bulkValue.style.display = 'inline-block';
+                bulkValue.innerHTML = '<option value="">Select Value</option>';
+                
+                if (action === 'status') {
+                    bulkValue.innerHTML += `
+                        <option value="Open">Open</option>
+                        <option value="InProgress">In Progress</option>
+                        <option value="Resolved">Resolved</option>
+                        <option value="Closed">Closed</option>
+                    `;
+                } else if (action === 'priority') {
+                    bulkValue.innerHTML += `
+                        <option value="Low">Low</option>
+                        <option value="Medium">Medium</option>
+                        <option value="High">High</option>
+                        <option value="Critical">Critical</option>
+                    `;
+                } else if (action === 'category') {
+                    bulkValue.innerHTML += `
+                        <option value="General">General</option>
+                        <option value="Technical">Technical</option>
+                        <option value="Billing">Billing</option>
+                        <option value="Feature Request">Feature Request</option>
+                        <option value="Bug Report">Bug Report</option>
+                    `;
+                }
+            } else {
+                bulkValue.style.display = 'none';
+            }
+        });
+
+        function applyBulkAction() {
+            const selectedIds = Array.from(document.querySelectorAll('.query-checkbox:checked')).map(cb => parseInt(cb.value));
+            const action = document.getElementById('bulkAction').value;
+            const value = document.getElementById('bulkValue').value;
+            
+            if (selectedIds.length === 0) {
+                showToast('error', 'Please select at least one query.');
+                return;
+            }
+            
+            if (!action || !value) {
+                showToast('error', 'Please select both action and value.');
+                return;
+            }
+            
+            fetch('@Url.Action("BulkUpdateHelpQueries")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                },
+                body: JSON.stringify({ queryIds: selectedIds, action: action, value: value })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('success', data.message);
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    showToast('error', data.message);
+                }
+            })
+            .catch(error => {
+                showToast('error', 'An error occurred while updating queries.');
+            });
+        }
+
+        function exportHelpQueries() {
+            const searchParams = new URLSearchParams(window.location.search);
+            const exportUrl = '@Url.Action("ExportHelpQueries")?' + searchParams.toString();
+            window.open(exportUrl, '_blank');
+        }
+
+        function showToast(type, message) {
+            const toastHtml = `
+                <div class="toast align-items-center text-white bg-${type === 'success' ? 'success' : 'danger'} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex">
+                        <div class="toast-body">${message}</div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                </div>
+            `;
+            
+            let toastContainer = document.getElementById('toast-container');
+            if (!toastContainer) {
+                toastContainer = document.createElement('div');
+                toastContainer.id = 'toast-container';
+                toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
+                toastContainer.style.zIndex = '1055';
+                document.body.appendChild(toastContainer);
+            }
+            
+            toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+            const toastElement = toastContainer.lastElementChild;
+            const toast = new bootstrap.Toast(toastElement);
+            toast.show();
+            
+            toastElement.addEventListener('hidden.bs.toast', () => {
+                toastElement.remove();
+            });
+        }
+    </script>
+}

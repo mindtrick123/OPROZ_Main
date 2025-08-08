@@ -600,6 +600,11 @@
                                         <a style="display: block; padding: 0.5rem; color: #333; text-decoration: none;" href="@Url.Action("History", "Payment")"><span class="icon-card"></span>Payment History</a>
                                         <a style="display: block; padding: 0.5rem; color: #333; text-decoration: none;" href="@Url.Action("ChangePassword", "Account")"><span class="icon-key"></span>Change Password</a>
                                         <a style="display: block; padding: 0.5rem; color: #333; text-decoration: none;" href="#"><span class="icon-cog"></span>Settings</a>
+                                        @if (User.IsInRole("Admin") || User.IsInRole("Manager"))
+                                        {
+                                            <hr style="margin: 0.5rem 0;">
+                                            <a style="display: block; padding: 0.5rem; color: #007bff; text-decoration: none; font-weight: bold;" href="@Url.Action("Index", "Admin")"><span class="icon-cog"></span>Admin Dashboard</a>
+                                        }
                                         <hr style="margin: 0.5rem 0;">
                                         <form asp-controller="Account" asp-action="Logout" method="post" style="margin: 0;">
                                             <button type="submit" style="background: none; border: none; padding: 0.5rem; color: #333; text-decoration: none; cursor: pointer; width: 100%; text-align: left;">
