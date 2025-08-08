@@ -186,6 +186,11 @@ namespace OPROZ_Main
             // Configure endpoints
             app.UseEndpoints(endpoints =>
             {
+                // Areas route for Admin
+                endpoints.MapControllerRoute(
+                    name: "areas",
+                    pattern: "{area:exists}/{controller=Dashboard}/{action=Index}/{id?}");
+
                 // Default MVC route
                 endpoints.MapControllerRoute(
                     name: "default",
