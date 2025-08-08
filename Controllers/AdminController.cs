@@ -1598,7 +1598,6 @@ namespace OPROZ_Main.Controllers
             {
                 _logger.LogError(ex, "Error toggling company status {CompanyId}", id);
                 return Json(new { success = false, message = "Error updating company status. Please try again." });
->>>>>>> main
             }
         }
     }
