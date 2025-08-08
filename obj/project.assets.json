@@ -1396,6 +1396,18 @@
           }
         }
       },
+      "Razorpay/3.0.0": {
+        "type": "package",
+        "dependencies": {
+          "Newtonsoft.Json": "11.0.2"
+        },
+        "compile": {
+          "lib/net45/Razorpay.dll": {}
+        },
+        "runtime": {
+          "lib/net45/Razorpay.dll": {}
+        }
+      },
       "SQLitePCLRaw.bundle_e_sqlite3/2.1.6": {
         "type": "package",
         "dependencies": {
@@ -3870,6 +3882,19 @@
         "newtonsoft.json.nuspec"
       ]
     },
+    "Razorpay/3.0.0": {
+      "sha512": "V7hSh0L635aGQ3nX9mtjREHyOlTeXEptlDXIo7LABulFkfD9DZQyI504mxh/ISIOkVrnU5TLMMomqenH5okzEA==",
+      "type": "package",
+      "path": "razorpay/3.0.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "lib/net40/Razorpay.dll",
+        "lib/net45/Razorpay.dll",
+        "razorpay.3.0.0.nupkg.sha512",
+        "razorpay.nuspec"
+      ]
+    },
     "SQLitePCLRaw.bundle_e_sqlite3/2.1.6": {
       "sha512": "BmAf6XWt4TqtowmiWe4/5rRot6GerAeklmOPfviOvwLoF5WwgxcJHAxZtySuyW9r9w+HLILnm8VfJFLCUJYW8A==",
       "type": "package",
@@ -5216,7 +5241,8 @@
       "Microsoft.EntityFrameworkCore.Design >= 8.0.0",
       "Microsoft.EntityFrameworkCore.Sqlite >= 8.0.0",
       "Microsoft.EntityFrameworkCore.Tools >= 8.0.0",
-      "MimeKit >= 4.3.0"
+      "MimeKit >= 4.3.0",
+      "Razorpay >= 3.0.0"
     ]
   },
   "packageFolders": {
@@ -5291,6 +5317,10 @@
           "MimeKit": {
             "target": "Package",
             "version": "[4.3.0, )"
+          },
+          "Razorpay": {
+            "target": "Package",
+            "version": "[3.0.0, )"
           }
         },
         "imports": [
@@ -5323,6 +5353,16 @@
       "warningLevel": 1,
       "message": "Package 'MimeKit' 4.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-gmc6-fwg3-75m5",
       "libraryId": "MimeKit",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1701",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Package 'Razorpay 3.0.0' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' instead of the project target framework 'net8.0'. This package may not be fully compatible with your project.",
+      "libraryId": "Razorpay",
       "targetGraphs": [
         "net8.0"
       ]

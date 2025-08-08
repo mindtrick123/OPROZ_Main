@@ -1,0 +1,205 @@
+@model OPROZ_Main.ViewModels.SubscriptionViewModel
+@{
+    ViewData["Title"] = "Subscribe to " + Model.Name;
+    var user = ViewBag.User as OPROZ_Main.Models.ApplicationUser;
+    var finalAmount = (decimal)ViewBag.FinalAmount;
+    var discountAmount = (decimal)ViewBag.DiscountAmount;
+    var offer = ViewBag.Offer as OPROZ_Main.Models.Offer;
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">Subscribe to @Model.Name</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>Plan Details</h5>
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>Service:</strong></td>
+                                    <td>@Model.ServiceName</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Plan:</strong></td>
+                                    <td>@Model.Name @(Model.IsPopular ? "(Popular)" : "")</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Duration:</strong></td>
+                                    <td>@Model.Duration</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Max Users:</strong></td>
+                                    <td>@Model.MaxUsers</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Storage:</strong></td>
+                                    <td>@(Model.MaxStorage / 1024) GB</td>
+                                </tr>
+                            </table>
+
+                            @if (Model.FeatureList.Any())
+                            {
+                                <h6>Features:</h6>
+                                <ul class="list-unstyled">
+                                    @foreach (var feature in Model.FeatureList)
+                                    {
+                                        <li><i class="fas fa-check text-success"></i> @feature</li>
+                                    }
+                                </ul>
+                            }
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Payment Summary</h5>
+                            <table class="table">
+                                <tr>
+                                    <td>Plan Price:</td>
+                                    <td class="text-end">₹@Model.Price.ToString("N2")</td>
+                                </tr>
+                                @if (discountAmount > 0 && offer != null)
+                                {
+                                    <tr class="text-success">
+                                        <td>Discount (@offer.Name):</td>
+                                        <td class="text-end">-₹@discountAmount.ToString("N2")</td>
+                                    </tr>
+                                }
+                                <tr class="border-top">
+                                    <td><strong>Total Amount:</strong></td>
+                                    <td class="text-end"><strong>₹@finalAmount.ToString("N2")</strong></td>
+                                </tr>
+                            </table>
+
+                            <div class="mt-3">
+                                <h6>Billing Information</h6>
+                                <p><strong>Name:</strong> @user?.FirstName @user?.LastName</p>
+                                <p><strong>Email:</strong> @user?.Email</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="text-center mt-4">
+                        <button type="button" class="btn btn-primary btn-lg" id="payButton" onclick="initiatePayment()">
+                            <i class="fas fa-credit-card"></i> Pay ₹@finalAmount.ToString("N2")
+                        </button>
+                        <a href="@Url.Action("Services", "Home")" class="btn btn-secondary btn-lg ms-2">Cancel</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Razorpay Checkout Script -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+<script>
+    function initiatePayment() {
+        const payButton = document.getElementById('payButton');
+        payButton.disabled = true;
+        payButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+
+        fetch('@Url.Action("InitiatePayment", "Payment")', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+            },
+            body: JSON.stringify({
+                planId: @Model.Id,
+                offerId: @(ViewBag.Offer?.Id ?? "null")
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                openRazorpayCheckout(data.payment);
+            } else {
+                alert('Error: ' + data.message);
+                resetPayButton();
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Payment initiation failed. Please try again.');
+            resetPayButton();
+        });
+    }
+
+    function openRazorpayCheckout(paymentData) {
+        const options = {
+            key: paymentData.keyId,
+            amount: paymentData.amount * 100, // Amount in paise
+            currency: paymentData.currency,
+            name: 'OPROZ',
+            description: paymentData.description,
+            order_id: paymentData.orderId,
+            prefill: {
+                name: paymentData.name,
+                email: paymentData.email,
+                contact: paymentData.contact
+            },
+            theme: {
+                color: '#007bff'
+            },
+            handler: function(response) {
+                verifyPayment(response, paymentData);
+            },
+            modal: {
+                ondismiss: function() {
+                    resetPayButton();
+                }
+            }
+        };
+
+        const rzp = new Razorpay(options);
+        rzp.open();
+    }
+
+    function verifyPayment(response, paymentData) {
+        const verificationData = {
+            razorpayOrderId: response.razorpay_order_id,
+            razorpayPaymentId: response.razorpay_payment_id,
+            razorpaySignature: response.razorpay_signature,
+            subscriptionPlanId: paymentData.subscriptionPlanId,
+            offerId: paymentData.offerId
+        };
+
+        fetch('@Url.Action("VerifyPayment", "Payment")', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+            },
+            body: JSON.stringify(verificationData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.location.href = data.redirectUrl;
+            } else {
+                alert('Payment verification failed: ' + data.message);
+                resetPayButton();
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Payment verification failed. Please contact support.');
+            resetPayButton();
+        });
+    }
+
+    function resetPayButton() {
+        const payButton = document.getElementById('payButton');
+        payButton.disabled = false;
+        payButton.innerHTML = '<i class="fas fa-credit-card"></i> Pay ₹@finalAmount.ToString("N2")';
+    }
+</script>
+
+@{
+    Html.AntiForgeryToken();
+}
