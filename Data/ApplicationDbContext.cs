@@ -18,6 +18,7 @@ namespace OPROZ_Main.Data
         public DbSet<PaymentHistory> PaymentHistories { get; set; }
         public DbSet<HelpQuery> HelpQueries { get; set; }
         public DbSet<AuditLog> AuditLogs { get; set; }
+        public new DbSet<Role> Roles { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -30,6 +31,18 @@ namespace OPROZ_Main.Data
                     .WithMany(p => p.Users)
                     .HasForeignKey(d => d.CompanyId)
                     .OnDelete(DeleteBehavior.SetNull);
+
+                entity.HasOne(d => d.Role)
+                    .WithMany(p => p.Users)
+                    .HasForeignKey(d => d.RoleId)
+                    .OnDelete(DeleteBehavior.SetNull);
+            });
+
+            // Configure Role
+            builder.Entity<Role>(entity =>
+            {
+                entity.HasIndex(e => e.Name)
+                    .IsUnique();
             });
 
             // Configure PaymentHistory

@@ -25,6 +25,132 @@ namespace OPROZ_Main.Controllers
             _logger = logger;
         }
 
+        [HttpGet("/user/login")]
+        public IActionResult UserLogin(string? returnUrl = null)
+        {
+            ViewData["ReturnUrl"] = returnUrl;
+            ViewData["LoginType"] = "User";
+            return View("Login");
+        }
+
+        [HttpPost("/user/login")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UserLogin(LoginViewModel model, string? returnUrl = null)
+        {
+            ViewData["ReturnUrl"] = returnUrl;
+            ViewData["LoginType"] = "User";
+
+            if (ModelState.IsValid)
+            {
+                var user = await _userManager.FindByEmailAsync(model.Email);
+                if (user != null)
+                {
+                    var roles = await _userManager.GetRolesAsync(user);
+                    if (!roles.Any(r => new[] { "User", "Manager", "Admin", "SuperAdmin" }.Contains(r)))
+                    {
+                        ModelState.AddModelError(string.Empty, "Access denied. User role required.");
+                        return View("Login", model);
+                    }
+                }
+
+                var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: true);
+
+                if (result.Succeeded)
+                {
+                    if (user != null)
+                    {
+                        user.LastLoginAt = DateTime.UtcNow;
+                        await _userManager.UpdateAsync(user);
+                    }
+
+                    _logger.LogInformation("User {Email} logged in via user portal.", model.Email);
+                    return RedirectToLocal(returnUrl);
+                }
+
+                if (result.RequiresTwoFactor)
+                {
+                    return RedirectToAction(nameof(LoginWith2fa), new { returnUrl, model.RememberMe });
+                }
+
+                if (result.IsLockedOut)
+                {
+                    _logger.LogWarning("User {Email} account locked out.", model.Email);
+                    ModelState.AddModelError(string.Empty, "Account is locked out.");
+                    return View("Login", model);
+                }
+
+                ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+            }
+
+            return View("Login", model);
+        }
+
+        [HttpGet("/admin/login")]
+        public IActionResult AdminLogin(string? returnUrl = null)
+        {
+            ViewData["ReturnUrl"] = returnUrl;
+            ViewData["LoginType"] = "Admin";
+            return View("Login");
+        }
+
+        [HttpPost("/admin/login")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AdminLogin(LoginViewModel model, string? returnUrl = null)
+        {
+            ViewData["ReturnUrl"] = returnUrl;
+            ViewData["LoginType"] = "Admin";
+
+            if (ModelState.IsValid)
+            {
+                var user = await _userManager.FindByEmailAsync(model.Email);
+                if (user != null)
+                {
+                    var roles = await _userManager.GetRolesAsync(user);
+                    if (!roles.Any(r => new[] { "Admin", "Manager", "Support", "SuperAdmin" }.Contains(r)))
+                    {
+                        ModelState.AddModelError(string.Empty, "Access denied. Admin role required.");
+                        return View("Login", model);
+                    }
+                }
+
+                var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: true);
+
+                if (result.Succeeded)
+                {
+                    if (user != null)
+                    {
+                        user.LastLoginAt = DateTime.UtcNow;
+                        await _userManager.UpdateAsync(user);
+                    }
+
+                    _logger.LogInformation("Admin user {Email} logged in via admin portal.", model.Email);
+                    
+                    // Redirect to admin dashboard if no return URL
+                    if (string.IsNullOrEmpty(returnUrl))
+                    {
+                        return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
+                    }
+                    return RedirectToLocal(returnUrl);
+                }
+
+                if (result.RequiresTwoFactor)
+                {
+                    return RedirectToAction(nameof(LoginWith2fa), new { returnUrl, model.RememberMe });
+                }
+
+                if (result.IsLockedOut)
+                {
+                    _logger.LogWarning("Admin user {Email} account locked out.", model.Email);
+                    ModelState.AddModelError(string.Empty, "Account is locked out.");
+                    return View("Login", model);
+                }
+
+                ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+            }
+
+            return View("Login", model);
+        }
+
         [HttpGet]
         public IActionResult Login(string? returnUrl = null)
         {

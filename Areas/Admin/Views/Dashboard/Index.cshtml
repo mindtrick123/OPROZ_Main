@@ -1,0 +1,57 @@
+@{
+    ViewData["Title"] = "Admin Dashboard";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="h3 mb-3">Admin Dashboard</h1>
+            
+            <div class="alert alert-success" role="alert">
+                <h4 class="alert-heading">Welcome to OPROZ Admin Panel!</h4>
+                <p>You have successfully accessed the admin dashboard. This area is protected by role-based authorization.</p>
+                <hr>
+                <p class="mb-0">Current User: @User.Identity?.Name | Role: @(User.IsInRole("SuperAdmin") ? "SuperAdmin" : User.IsInRole("Admin") ? "Admin" : User.IsInRole("Manager") ? "Manager" : "Support")</p>
+            </div>
+
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="card text-white bg-primary mb-3">
+                        <div class="card-header">Users</div>
+                        <div class="card-body">
+                            <h4 class="card-title">0</h4>
+                            <p class="card-text">Total registered users</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-white bg-success mb-3">
+                        <div class="card-header">Companies</div>
+                        <div class="card-body">
+                            <h4 class="card-title">0</h4>
+                            <p class="card-text">Active companies</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-white bg-info mb-3">
+                        <div class="card-header">Services</div>
+                        <div class="card-body">
+                            <h4 class="card-title">0</h4>
+                            <p class="card-text">Available services</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-white bg-warning mb-3">
+                        <div class="card-header">Revenue</div>
+                        <div class="card-body">
+                            <h4 class="card-title">$0</h4>
+                            <p class="card-text">Total revenue</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

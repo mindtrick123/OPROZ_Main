@@ -15,14 +15,20 @@ namespace OPROZ_Main.Data
             var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
             var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
 
-            // Ensure database is created
-            await context.Database.EnsureCreatedAsync();
+            // Apply pending migrations
+            if (context.Database.GetPendingMigrations().Any())
+            {
+                await context.Database.MigrateAsync();
+            }
 
-            // Seed roles
+            // Seed custom roles first
+            await SeedCustomRolesAsync(context);
+
+            // Seed identity roles
             await SeedRolesAsync(roleManager);
 
             // Seed admin user
-            await SeedAdminUserAsync(userManager, configuration);
+            await SeedAdminUserAsync(userManager, context, configuration);
 
             // Seed core services
             await SeedServicesAsync(context);
@@ -30,9 +36,27 @@ namespace OPROZ_Main.Data
             await context.SaveChangesAsync();
         }
 
+        private static async Task SeedCustomRolesAsync(ApplicationDbContext context)
+        {
+            if (!await context.Roles.AnyAsync())
+            {
+                var roles = new List<Role>
+                {
+                    new Role { Name = "SuperAdmin", Description = "Super Administrator with full system access", IsActive = true },
+                    new Role { Name = "Admin", Description = "Administrator with full company access", IsActive = true },
+                    new Role { Name = "Manager", Description = "Manager with limited administrative access", IsActive = true },
+                    new Role { Name = "Support", Description = "Support staff with customer service access", IsActive = true },
+                    new Role { Name = "User", Description = "Standard user with basic access", IsActive = true }
+                };
+
+                await context.Roles.AddRangeAsync(roles);
+                await context.SaveChangesAsync();
+            }
+        }
+
         private static async Task SeedRolesAsync(RoleManager<IdentityRole> roleManager)
         {
-            string[] roleNames = { "Admin", "Manager", "User", "Support" };
+            string[] roleNames = { "SuperAdmin", "Admin", "Manager", "User", "Support" };
 
             foreach (var roleName in roleNames)
             {
@@ -43,13 +67,16 @@ namespace OPROZ_Main.Data
             }
         }
 
-        private static async Task SeedAdminUserAsync(UserManager<ApplicationUser> userManager, IConfiguration configuration)
+        private static async Task SeedAdminUserAsync(UserManager<ApplicationUser> userManager, ApplicationDbContext context, IConfiguration configuration)
         {
             var adminEmail = configuration["ApplicationSettings:AdminEmail"] ?? "admin@oproz.com";
             var adminPassword = configuration["ApplicationSettings:DefaultAdminPassword"] ?? "Admin@123456";
 
             if (await userManager.FindByEmailAsync(adminEmail) == null)
             {
+                // Get the SuperAdmin custom role
+                var superAdminRole = await context.Roles.FirstOrDefaultAsync(r => r.Name == "SuperAdmin");
+
                 var adminUser = new ApplicationUser
                 {
                     UserName = adminEmail,
@@ -58,13 +85,15 @@ namespace OPROZ_Main.Data
                     LastName = "User",
                     EmailConfirmed = true,
                     IsActive = true,
+                    Verified = true,
+                    RoleId = superAdminRole?.Id,
                     CreatedAt = DateTime.UtcNow
                 };
 
                 var result = await userManager.CreateAsync(adminUser, adminPassword);
                 if (result.Succeeded)
                 {
-                    await userManager.AddToRoleAsync(adminUser, "Admin");
+                    await userManager.AddToRoleAsync(adminUser, "SuperAdmin");
                 }
             }
         }

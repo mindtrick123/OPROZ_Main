@@ -16,6 +16,11 @@ namespace OPROZ_Main.Models
         public int? CompanyId { get; set; }
         public virtual Company? Company { get; set; }
 
+        public int? RoleId { get; set; }
+        public virtual Role? Role { get; set; }
+
+        public bool Verified { get; set; } = false;
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? LastLoginAt { get; set; }
         public bool IsActive { get; set; } = true;

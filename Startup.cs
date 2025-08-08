@@ -3,6 +3,9 @@ using Microsoft.EntityFrameworkCore;
 using OPROZ_Main.Data;
 using OPROZ_Main.Models;
 using OPROZ_Main.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace OPROZ_Main
 {
@@ -85,6 +88,37 @@ namespace OPROZ_Main
             // Add custom services
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<INotificationService, NotificationService>();
+            services.AddScoped<IJwtService, JwtService>();
+
+            // Configure JWT Authentication
+            var jwtSettings = Configuration.GetSection("JwtSettings");
+            var secretKey = jwtSettings["SecretKey"];
+            
+            if (!string.IsNullOrEmpty(secretKey))
+            {
+                services.AddAuthentication(options =>
+                {
+                    options.DefaultAuthenticateScheme = IdentityConstants.ApplicationScheme;
+                    options.DefaultChallengeScheme = IdentityConstants.ApplicationScheme;
+                    options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
+                })
+                .AddJwtBearer("Bearer", options =>
+                {
+                    options.RequireHttpsMetadata = true;
+                    options.SaveToken = true;
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)),
+                        ValidateIssuer = true,
+                        ValidIssuer = jwtSettings["Issuer"],
+                        ValidateAudience = true,
+                        ValidAudience = jwtSettings["Audience"],
+                        ValidateLifetime = true,
+                        ClockSkew = TimeSpan.Zero
+                    };
+                });
+            }
 
             // Add MVC
             services.AddControllersWithViews(options =>
